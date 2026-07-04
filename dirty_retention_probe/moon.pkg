@@ -1,0 +1,10 @@
+import {
+  "username/acyclic",
+}
+
+supported_targets = "native"
+
+options(
+  "is-main": true,
+  "native-stub": [ "probe.c" ],
+)

@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="520" viewBox="0 0 1080 520" role="img" aria-labelledby="title desc">
+<title id="title">Steady update cost grows linearly</title>
+<desc id="desc">Line chart for Steady update cost grows linearly</desc>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="84" y="30" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#111827">Steady update cost grows linearly</text>
+<text x="84" y="50" font-family="Arial, sans-serif" font-size="12" fill="#475569">Native probe sample, lower is better</text>
+<line x1="84" y1="440.0" x2="740" y2="440.0" stroke="#e5e7eb" stroke-width="1"/>
+<text x="74" y="444.0" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#64748b">0</text>
+<line x1="84" y1="362.8" x2="740" y2="362.8" stroke="#e5e7eb" stroke-width="1"/>
+<text x="74" y="366.8" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#64748b">829k</text>
+<line x1="84" y1="285.6" x2="740" y2="285.6" stroke="#e5e7eb" stroke-width="1"/>
+<text x="74" y="289.6" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#64748b">1.7M</text>
+<line x1="84" y1="208.4" x2="740" y2="208.4" stroke="#e5e7eb" stroke-width="1"/>
+<text x="74" y="212.4" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#64748b">2.5M</text>
+<line x1="84" y1="131.2" x2="740" y2="131.2" stroke="#e5e7eb" stroke-width="1"/>
+<text x="74" y="135.2" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#64748b">3.3M</text>
+<line x1="84" y1="54.0" x2="740" y2="54.0" stroke="#e5e7eb" stroke-width="1"/>
+<text x="74" y="58.0" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#64748b">4.1M</text>
+<line x1="84.0" y1="440" x2="84.0" y2="445" stroke="#94a3b8" stroke-width="1"/>
+<text x="84.0" y="464" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#475569">1k</text>
+<line x1="109.2" y1="440" x2="109.2" y2="445" stroke="#94a3b8" stroke-width="1"/>
+<text x="109.2" y="464" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#475569">2k</text>
+<line x1="151.3" y1="440" x2="151.3" y2="445" stroke="#94a3b8" stroke-width="1"/>
+<text x="151.3" y="464" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#475569">5k</text>
+<line x1="235.4" y1="440" x2="235.4" y2="445" stroke="#94a3b8" stroke-width="1"/>
+<text x="235.4" y="464" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#475569">10k</text>
+<line x1="403.6" y1="440" x2="403.6" y2="445" stroke="#94a3b8" stroke-width="1"/>
+<text x="403.6" y="464" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#475569">20k</text>
+<line x1="740.0" y1="440" x2="740.0" y2="445" stroke="#94a3b8" stroke-width="1"/>
+<text x="740.0" y="464" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#475569">40k</text>
+<line x1="84" y1="54" x2="84" y2="440" stroke="#334155" stroke-width="1.2"/>
+<line x1="84" y1="440" x2="740" y2="440" stroke="#334155" stroke-width="1.2"/>
+<text x="412.0" y="496" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#334155">dropped derived graphs (n)</text>
+<text transform="translate(22 247.0) rotate(-90)" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#334155">steady avg ns / update</text>
+<path d="M84.0,433.1 L109.2,422.0 L151.3,405.3 L235.4,371.0 L403.6,300.1 L740.0,148.5" fill="none" stroke="#2563eb" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="84.0" cy="433.1" r="4" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+<circle cx="109.2" cy="422.0" r="4" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+<circle cx="151.3" cy="405.3" r="4" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+<circle cx="235.4" cy="371.0" r="4" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+<circle cx="403.6" cy="300.1" r="4" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+<circle cx="740.0" cy="148.5" r="4" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+<line x1="774" y1="72" x2="796" y2="72" stroke="#2563eb" stroke-width="3"/>
+<text x="804" y="76" font-family="Arial, sans-serif" font-size="12" fill="#334155">map_fanout</text>
+<path d="M84.0,432.9 L109.2,421.7 L151.3,402.9 L235.4,366.8 L403.6,275.9 L740.0,82.6" fill="none" stroke="#7c3aed" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="84.0" cy="432.9" r="4" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+<circle cx="109.2" cy="421.7" r="4" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+<circle cx="151.3" cy="402.9" r="4" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+<circle cx="235.4" cy="366.8" r="4" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+<circle cx="403.6" cy="275.9" r="4" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+<circle cx="740.0" cy="82.6" r="4" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+<line x1="774" y1="96" x2="796" y2="96" stroke="#7c3aed" stroke-width="3"/>
+<text x="804" y="100" font-family="Arial, sans-serif" font-size="12" fill="#334155">chain_depth4</text>
+<path d="M84.0,433.2 L109.2,422.7 L151.3,405.2 L235.4,371.7 L403.6,303.1 L740.0,152.3" fill="none" stroke="#059669" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="84.0" cy="433.2" r="4" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+<circle cx="109.2" cy="422.7" r="4" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+<circle cx="151.3" cy="405.2" r="4" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+<circle cx="235.4" cy="371.7" r="4" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+<circle cx="403.6" cy="303.1" r="4" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+<circle cx="740.0" cy="152.3" r="4" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+<line x1="774" y1="120" x2="796" y2="120" stroke="#059669" stroke-width="3"/>
+<text x="804" y="124" font-family="Arial, sans-serif" font-size="12" fill="#334155">map12</text>
+<path d="M84.0,433.6 L109.2,422.1 L151.3,404.1 L235.4,368.7 L403.6,296.4 L740.0,124.9" fill="none" stroke="#0891b2" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="84.0" cy="433.6" r="4" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+<circle cx="109.2" cy="422.1" r="4" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+<circle cx="151.3" cy="404.1" r="4" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+<circle cx="235.4" cy="368.7" r="4" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+<circle cx="403.6" cy="296.4" r="4" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+<circle cx="740.0" cy="124.9" r="4" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+<line x1="774" y1="144" x2="796" y2="144" stroke="#0891b2" stroke-width="3"/>
+<text x="804" y="148" font-family="Arial, sans-serif" font-size="12" fill="#334155">zip12</text>
+<path d="M84.0,433.1 L109.2,422.4 L151.3,405.5 L235.4,371.4 L403.6,301.2 L740.0,149.9" fill="none" stroke="#d97706" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="84.0" cy="433.1" r="4" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+<circle cx="109.2" cy="422.4" r="4" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+<circle cx="151.3" cy="405.5" r="4" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+<circle cx="235.4" cy="371.4" r="4" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+<circle cx="403.6" cy="301.2" r="4" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+<circle cx="740.0" cy="149.9" r="4" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+<line x1="774" y1="168" x2="796" y2="168" stroke="#d97706" stroke-width="3"/>
+<text x="804" y="172" font-family="Arial, sans-serif" font-size="12" fill="#334155">bind_branch</text>
+<path d="M84.0,431.8 L109.2,420.9 L151.3,402.8 L235.4,367.6 L403.6,289.7 L740.0,111.8" fill="none" stroke="#db2777" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="84.0" cy="431.8" r="4" fill="#ffffff" stroke="#db2777" stroke-width="2"/>
+<circle cx="109.2" cy="420.9" r="4" fill="#ffffff" stroke="#db2777" stroke-width="2"/>
+<circle cx="151.3" cy="402.8" r="4" fill="#ffffff" stroke="#db2777" stroke-width="2"/>
+<circle cx="235.4" cy="367.6" r="4" fill="#ffffff" stroke="#db2777" stroke-width="2"/>
+<circle cx="403.6" cy="289.7" r="4" fill="#ffffff" stroke="#db2777" stroke-width="2"/>
+<circle cx="740.0" cy="111.8" r="4" fill="#ffffff" stroke="#db2777" stroke-width="2"/>
+<line x1="774" y1="192" x2="796" y2="192" stroke="#db2777" stroke-width="3"/>
+<text x="804" y="196" font-family="Arial, sans-serif" font-size="12" fill="#334155">bind_live_root_subgraph</text>
+<path d="M84.0,439.4 L109.2,439.4 L151.3,439.4 L235.4,439.5 L403.6,439.4 L740.0,439.4" fill="none" stroke="#111827" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="84.0" cy="439.4" r="4" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+<circle cx="109.2" cy="439.4" r="4" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+<circle cx="151.3" cy="439.4" r="4" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+<circle cx="235.4" cy="439.5" r="4" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+<circle cx="403.6" cy="439.4" r="4" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+<circle cx="740.0" cy="439.4" r="4" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+<line x1="774" y1="216" x2="796" y2="216" stroke="#111827" stroke-width="3"/>
+<text x="804" y="220" font-family="Arial, sans-serif" font-size="12" fill="#334155">bind_live_local_subgraph</text>
+<text x="84" y="512" font-family="Arial, sans-serif" font-size="11" fill="#64748b">External-root cases grow to ~3.1-3.8 ms/update at 40k; local-only bind stays near 6 us/update.</text>
+</svg>

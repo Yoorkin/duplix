@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="520" viewBox="0 0 1080 520" role="img" aria-labelledby="title desc">
+<title id="title">RSS after build by sample size</title>
+<desc id="desc">Line chart for RSS after build by sample size</desc>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="84" y="30" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#111827">RSS after build by sample size</text>
+<text x="84" y="50" font-family="Arial, sans-serif" font-size="12" fill="#475569">Native probe sample, lower is better</text>
+<line x1="84" y1="440.0" x2="740" y2="440.0" stroke="#e5e7eb" stroke-width="1"/>
+<text x="74" y="444.0" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#64748b">2k</text>
+<line x1="84" y1="362.8" x2="740" y2="362.8" stroke="#e5e7eb" stroke-width="1"/>
+<text x="74" y="366.8" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#64748b">10k</text>
+<line x1="84" y1="285.6" x2="740" y2="285.6" stroke="#e5e7eb" stroke-width="1"/>
+<text x="74" y="289.6" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#64748b">18k</text>
+<line x1="84" y1="208.4" x2="740" y2="208.4" stroke="#e5e7eb" stroke-width="1"/>
+<text x="74" y="212.4" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#64748b">27k</text>
+<line x1="84" y1="131.2" x2="740" y2="131.2" stroke="#e5e7eb" stroke-width="1"/>
+<text x="74" y="135.2" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#64748b">35k</text>
+<line x1="84" y1="54.0" x2="740" y2="54.0" stroke="#e5e7eb" stroke-width="1"/>
+<text x="74" y="58.0" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#64748b">43k</text>
+<line x1="84.0" y1="440" x2="84.0" y2="445" stroke="#94a3b8" stroke-width="1"/>
+<text x="84.0" y="464" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#475569">1k</text>
+<line x1="109.2" y1="440" x2="109.2" y2="445" stroke="#94a3b8" stroke-width="1"/>
+<text x="109.2" y="464" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#475569">2k</text>
+<line x1="151.3" y1="440" x2="151.3" y2="445" stroke="#94a3b8" stroke-width="1"/>
+<text x="151.3" y="464" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#475569">5k</text>
+<line x1="235.4" y1="440" x2="235.4" y2="445" stroke="#94a3b8" stroke-width="1"/>
+<text x="235.4" y="464" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#475569">10k</text>
+<line x1="403.6" y1="440" x2="403.6" y2="445" stroke="#94a3b8" stroke-width="1"/>
+<text x="403.6" y="464" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#475569">20k</text>
+<line x1="740.0" y1="440" x2="740.0" y2="445" stroke="#94a3b8" stroke-width="1"/>
+<text x="740.0" y="464" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#475569">40k</text>
+<line x1="84" y1="54" x2="84" y2="440" stroke="#334155" stroke-width="1.2"/>
+<line x1="84" y1="440" x2="740" y2="440" stroke="#334155" stroke-width="1.2"/>
+<text x="412.0" y="496" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#334155">dropped derived graphs (n)</text>
+<text transform="translate(22 247.0) rotate(-90)" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#334155">RSS after build KiB</text>
+<path d="M84.0,413.4 L109.2,411.7 L151.3,407.4 L235.4,399.7 L403.6,373.9 L740.0,329.7" fill="none" stroke="#2563eb" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="84.0" cy="413.4" r="4" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+<circle cx="109.2" cy="411.7" r="4" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+<circle cx="151.3" cy="407.4" r="4" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+<circle cx="235.4" cy="399.7" r="4" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+<circle cx="403.6" cy="373.9" r="4" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+<circle cx="740.0" cy="329.7" r="4" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+<line x1="774" y1="72" x2="796" y2="72" stroke="#2563eb" stroke-width="3"/>
+<text x="804" y="76" font-family="Arial, sans-serif" font-size="12" fill="#334155">map_fanout</text>
+<path d="M84.0,290.1 L109.2,299.6 L151.3,318.9 L235.4,323.1 L403.6,291.9 L740.0,193.8" fill="none" stroke="#7c3aed" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="84.0" cy="290.1" r="4" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+<circle cx="109.2" cy="299.6" r="4" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+<circle cx="151.3" cy="318.9" r="4" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+<circle cx="235.4" cy="323.1" r="4" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+<circle cx="403.6" cy="291.9" r="4" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+<circle cx="740.0" cy="193.8" r="4" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+<line x1="774" y1="96" x2="796" y2="96" stroke="#7c3aed" stroke-width="3"/>
+<text x="804" y="100" font-family="Arial, sans-serif" font-size="12" fill="#334155">chain_depth4</text>
+<path d="M84.0,279.9 L109.2,278.5 L151.3,286.5 L235.4,310.0 L403.6,293.4 L740.0,221.5" fill="none" stroke="#059669" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="84.0" cy="279.9" r="4" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+<circle cx="109.2" cy="278.5" r="4" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+<circle cx="151.3" cy="286.5" r="4" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+<circle cx="235.4" cy="310.0" r="4" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+<circle cx="403.6" cy="293.4" r="4" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+<circle cx="740.0" cy="221.5" r="4" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+<line x1="774" y1="120" x2="796" y2="120" stroke="#059669" stroke-width="3"/>
+<text x="804" y="124" font-family="Arial, sans-serif" font-size="12" fill="#334155">map12</text>
+<path d="M84.0,183.3 L109.2,192.9 L151.3,229.7 L235.4,247.8 L403.6,182.0 L740.0,95.7" fill="none" stroke="#0891b2" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="84.0" cy="183.3" r="4" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+<circle cx="109.2" cy="192.9" r="4" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+<circle cx="151.3" cy="229.7" r="4" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+<circle cx="235.4" cy="247.8" r="4" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+<circle cx="403.6" cy="182.0" r="4" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+<circle cx="740.0" cy="95.7" r="4" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+<line x1="774" y1="144" x2="796" y2="144" stroke="#0891b2" stroke-width="3"/>
+<text x="804" y="148" font-family="Arial, sans-serif" font-size="12" fill="#334155">zip12</text>
+<path d="M84.0,80.6 L109.2,90.3 L151.3,99.9 L235.4,168.8 L403.6,178.3 L740.0,168.0" fill="none" stroke="#d97706" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="84.0" cy="80.6" r="4" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+<circle cx="109.2" cy="90.3" r="4" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+<circle cx="151.3" cy="99.9" r="4" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+<circle cx="235.4" cy="168.8" r="4" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+<circle cx="403.6" cy="178.3" r="4" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+<circle cx="740.0" cy="168.0" r="4" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+<line x1="774" y1="168" x2="796" y2="168" stroke="#d97706" stroke-width="3"/>
+<text x="804" y="172" font-family="Arial, sans-serif" font-size="12" fill="#334155">bind_branch</text>
+<path d="M84.0,158.4 L109.2,187.3 L151.3,197.0 L235.4,207.2 L403.6,185.8 L740.0,130.4" fill="none" stroke="#db2777" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="84.0" cy="158.4" r="4" fill="#ffffff" stroke="#db2777" stroke-width="2"/>
+<circle cx="109.2" cy="187.3" r="4" fill="#ffffff" stroke="#db2777" stroke-width="2"/>
+<circle cx="151.3" cy="197.0" r="4" fill="#ffffff" stroke="#db2777" stroke-width="2"/>
+<circle cx="235.4" cy="207.2" r="4" fill="#ffffff" stroke="#db2777" stroke-width="2"/>
+<circle cx="403.6" cy="185.8" r="4" fill="#ffffff" stroke="#db2777" stroke-width="2"/>
+<circle cx="740.0" cy="130.4" r="4" fill="#ffffff" stroke="#db2777" stroke-width="2"/>
+<line x1="774" y1="192" x2="796" y2="192" stroke="#db2777" stroke-width="3"/>
+<text x="804" y="196" font-family="Arial, sans-serif" font-size="12" fill="#334155">bind_live_root_subgraph</text>
+<path d="M84.0,168.6 L109.2,168.6 L151.3,178.3 L235.4,187.9 L403.6,197.6 L740.0,197.3" fill="none" stroke="#111827" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="84.0" cy="168.6" r="4" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+<circle cx="109.2" cy="168.6" r="4" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+<circle cx="151.3" cy="178.3" r="4" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+<circle cx="235.4" cy="187.9" r="4" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+<circle cx="403.6" cy="197.6" r="4" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+<circle cx="740.0" cy="197.3" r="4" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+<line x1="774" y1="216" x2="796" y2="216" stroke="#111827" stroke-width="3"/>
+<text x="804" y="220" font-family="Arial, sans-serif" font-size="12" fill="#334155">bind_live_local_subgraph</text>
+<text x="84" y="512" font-family="Arial, sans-serif" font-size="11" fill="#64748b">Compare trends within each scenario; absolute RSS includes runtime and allocator state.</text>
+</svg>

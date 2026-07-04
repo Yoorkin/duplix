@@ -1,7 +1,3 @@
-// Main package file for your library code.
-// Put public APIs and shared helpers here.
-// Keep blocks small and focused for easy refactors.
-
 ///|
 let uuid : Ref[Int] = Ref(0)
 
@@ -12,12 +8,12 @@ fn get_uuid() -> Int {
 }
 
 ///|
+/// child1 ---+
+///           |----derived----> parent
+/// child2 ---+
+///
+/// parent_expr = child1_expr + child2_expr
 trait ErasedNode {
-  /// child1 ---+
-  ///           |----derived----> parent
-  /// child2 ---+
-  ///
-  /// parent_expr = child1_expr + child2_expr
   fn get_id(Self) -> Int
   fn childs(Self) -> Array[&ErasedNode]
   fn dirty_flag(Self) -> DirtyFlag
@@ -43,12 +39,12 @@ struct Node[T] {
 }
 
 ///|
-impl[T] Eq for Node[T] with fn equal(a, b) {
+pub impl[T] Eq for Node[T] with fn equal(a, b) {
   a.id == b.id
 }
 
 ///|
-impl[T] Compare for Node[T] with fn compare(a, b) {
+pub impl[T] Compare for Node[T] with fn compare(a, b) {
   a.id.compare(b.id)
 }
 
@@ -74,6 +70,7 @@ impl[T : Eq] ErasedNode for Node[T] with fn recompute(self, changed) {
       let new = (self.compute)()
       self.value = Some(new)
       changed.add(self.id)
+      self.dirty_flag().dirty = false
     }
     Some(old) if self.dirty_flag().dirty => {
       if self.childs is [] || self.childs.any(x => changed.contains(x.get_id())) {
@@ -136,31 +133,47 @@ pub fn[A : Eq, B] Node::map(a : Node[A], f : (A) -> B) -> Node[B] {
 }
 
 ///|
+///         a -----+
+///                |----> output
+///   b1 or b2 ----+
 pub fn[A : Eq, B : Eq] Node::bind(a : Node[A], f : (A) -> Node[B]) -> Node[B] {
-  let prev_dirty_sub : DirtyFlag? = None
+  let mut b1_dirty_sub : DirtyFlag? = None
+  let output_childs : Array[&ErasedNode] = []
+  let output_dirty_flag = { dirty: true, parents: [], id: get_uuid() }
+  fn compute() {
+    let b2 = f(a.value.unwrap())
+
+    // delete: b1 ---derived---> output
+    // add:    b2 ---derived---> output
+    if b1_dirty_sub is Some(b1) {
+      if b1.parents.search(output_dirty_flag) is Some(i) {
+        ignore(b1.parents.remove(i))
+      }
+      if output_childs.search_by(x => x.dirty_flag().id == b1.id) is Some(i) {
+        ignore(output_childs.remove(i))
+      }
+    }
+
+    if b1_dirty_sub is None ||
+      (b1_dirty_sub is Some(prev) && prev.id != b2.dirty_flag().id) {
+      b2.dirty_flag.parents.push(output_dirty_flag)
+      output_childs.push(b2)
+      b1_dirty_sub = Some(b2.dirty_flag)
+    }
+
+    b2.read()
+  }
+
+  // a ---derived--->output
+  a.dirty_flag.parents.push(output_dirty_flag)
+  output_childs.push(a)
+
   {
     id: get_uuid(),
     value: None,
-    compute: () => {
-      // delete Da -> Db1
-      if prev_dirty_sub is Some(p) && a.dirty_flag.parents.search(p) is Some(i) {
-        ignore(a.dirty_flag.parents.remove(i))
-      }
-      let b = f(a.value.unwrap())
-
-      // add Nb2 -> Na
-      if !b.childs.any(x => x.get_id() == a.id) {
-        b.childs.push(a)
-      }
-
-      // add Da -> Db2
-      if !a.dirty_flag.parents.any(x => x.id == b.dirty_flag.id) {
-        a.dirty_flag.parents.push(b.dirty_flag)
-      }
-      b.read()
-    },
-    childs: [a],
-    dirty_flag: { dirty: true, parents: [a.dirty_flag], id: get_uuid() },
+    compute,
+    childs: output_childs,
+    dirty_flag: output_dirty_flag,
   }
 }
 
@@ -203,6 +216,11 @@ pub fn stabilize(node : &ErasedNode) -> Unit {
 pub fn[T : Eq] Input::set(input : Input[T], x : T) -> Unit {
   input.0.compute = () => x
   mark_dirty(input.0)
+}
+
+///|
+pub fn[T] Input::to_node(input : Input[T]) -> Node[T] {
+  input.0
 }
 
 ///|

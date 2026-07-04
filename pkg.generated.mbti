@@ -1,0 +1,58 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "username/acyclic"
+
+import {
+  "moonbitlang/core/set",
+}
+
+// Values
+pub fn[T] input(T) -> Input[T]
+
+pub fn stabilize(&ErasedNode) -> Unit
+
+// Errors
+
+// Types and methods
+type DirtyFlag
+pub impl Compare for DirtyFlag
+pub impl Eq for DirtyFlag
+
+type Input[T]
+pub fn[T : Eq] Input::set(Self[T], T) -> Unit
+pub fn[T] Input::to_node(Self[T]) -> Node[T]
+
+type Node[T]
+pub fn[A : Eq, B : Eq] Node::bind(Self[A], (A) -> Self[B]) -> Self[B]
+pub fn[A : Eq, B] Node::map(Self[A], (A) -> B) -> Self[B]
+pub fn[A : Eq, B] Node::map1(Self[A], (A) -> B) -> Self[B]
+pub fn[A : Eq, B : Eq, C : Eq, D : Eq, E : Eq, F : Eq, G : Eq, H : Eq, I : Eq, J : Eq, K] Node::map10(Self[A], Self[B], Self[C], Self[D], Self[E], Self[F], Self[G], Self[H], Self[I], Self[J], (A, B, C, D, E, F, G, H, I, J) -> K) -> Self[K]
+pub fn[A : Eq, B : Eq, C : Eq, D : Eq, E : Eq, F : Eq, G : Eq, H : Eq, I : Eq, J : Eq, K : Eq, L] Node::map11(Self[A], Self[B], Self[C], Self[D], Self[E], Self[F], Self[G], Self[H], Self[I], Self[J], Self[K], (A, B, C, D, E, F, G, H, I, J, K) -> L) -> Self[L]
+pub fn[A : Eq, B : Eq, C : Eq, D : Eq, E : Eq, F : Eq, G : Eq, H : Eq, I : Eq, J : Eq, K : Eq, L : Eq, M] Node::map12(Self[A], Self[B], Self[C], Self[D], Self[E], Self[F], Self[G], Self[H], Self[I], Self[J], Self[K], Self[L], (A, B, C, D, E, F, G, H, I, J, K, L) -> M) -> Self[M]
+pub fn[A : Eq, B : Eq, C] Node::map2(Self[A], Self[B], (A, B) -> C) -> Self[C]
+pub fn[A : Eq, B : Eq, C : Eq, D] Node::map3(Self[A], Self[B], Self[C], (A, B, C) -> D) -> Self[D]
+pub fn[A : Eq, B : Eq, C : Eq, D : Eq, E] Node::map4(Self[A], Self[B], Self[C], Self[D], (A, B, C, D) -> E) -> Self[E]
+pub fn[A : Eq, B : Eq, C : Eq, D : Eq, E : Eq, F] Node::map5(Self[A], Self[B], Self[C], Self[D], Self[E], (A, B, C, D, E) -> F) -> Self[F]
+pub fn[A : Eq, B : Eq, C : Eq, D : Eq, E : Eq, F : Eq, G] Node::map6(Self[A], Self[B], Self[C], Self[D], Self[E], Self[F], (A, B, C, D, E, F) -> G) -> Self[G]
+pub fn[A : Eq, B : Eq, C : Eq, D : Eq, E : Eq, F : Eq, G : Eq, H] Node::map7(Self[A], Self[B], Self[C], Self[D], Self[E], Self[F], Self[G], (A, B, C, D, E, F, G) -> H) -> Self[H]
+pub fn[A : Eq, B : Eq, C : Eq, D : Eq, E : Eq, F : Eq, G : Eq, H : Eq, I] Node::map8(Self[A], Self[B], Self[C], Self[D], Self[E], Self[F], Self[G], Self[H], (A, B, C, D, E, F, G, H) -> I) -> Self[I]
+pub fn[A : Eq, B : Eq, C : Eq, D : Eq, E : Eq, F : Eq, G : Eq, H : Eq, I : Eq, J] Node::map9(Self[A], Self[B], Self[C], Self[D], Self[E], Self[F], Self[G], Self[H], Self[I], (A, B, C, D, E, F, G, H, I) -> J) -> Self[J]
+pub fn[A : Eq] Node::read(Self[A]) -> A
+pub fn[A : Eq, B : Eq, C : Eq, D : Eq, E : Eq, F : Eq, G : Eq, H : Eq, I : Eq, J : Eq] Node::zip10(Self[A], Self[B], Self[C], Self[D], Self[E], Self[F], Self[G], Self[H], Self[I], Self[J]) -> Self[(A, B, C, D, E, F, G, H, I, J)]
+pub fn[A : Eq, B : Eq, C : Eq, D : Eq, E : Eq, F : Eq, G : Eq, H : Eq, I : Eq, J : Eq, K : Eq] Node::zip11(Self[A], Self[B], Self[C], Self[D], Self[E], Self[F], Self[G], Self[H], Self[I], Self[J], Self[K]) -> Self[(A, B, C, D, E, F, G, H, I, J, K)]
+pub fn[A : Eq, B : Eq, C : Eq, D : Eq, E : Eq, F : Eq, G : Eq, H : Eq, I : Eq, J : Eq, K : Eq, L : Eq] Node::zip12(Self[A], Self[B], Self[C], Self[D], Self[E], Self[F], Self[G], Self[H], Self[I], Self[J], Self[K], Self[L]) -> Self[(A, B, C, D, E, F, G, H, I, J, K, L)]
+pub fn[A : Eq, B : Eq] Node::zip2(Self[A], Self[B]) -> Self[(A, B)]
+pub fn[A : Eq, B : Eq, C : Eq] Node::zip3(Self[A], Self[B], Self[C]) -> Self[(A, B, C)]
+pub fn[A : Eq, B : Eq, C : Eq, D : Eq] Node::zip4(Self[A], Self[B], Self[C], Self[D]) -> Self[(A, B, C, D)]
+pub fn[A : Eq, B : Eq, C : Eq, D : Eq, E : Eq] Node::zip5(Self[A], Self[B], Self[C], Self[D], Self[E]) -> Self[(A, B, C, D, E)]
+pub fn[A : Eq, B : Eq, C : Eq, D : Eq, E : Eq, F : Eq] Node::zip6(Self[A], Self[B], Self[C], Self[D], Self[E], Self[F]) -> Self[(A, B, C, D, E, F)]
+pub fn[A : Eq, B : Eq, C : Eq, D : Eq, E : Eq, F : Eq, G : Eq] Node::zip7(Self[A], Self[B], Self[C], Self[D], Self[E], Self[F], Self[G]) -> Self[(A, B, C, D, E, F, G)]
+pub fn[A : Eq, B : Eq, C : Eq, D : Eq, E : Eq, F : Eq, G : Eq, H : Eq] Node::zip8(Self[A], Self[B], Self[C], Self[D], Self[E], Self[F], Self[G], Self[H]) -> Self[(A, B, C, D, E, F, G, H)]
+pub fn[A : Eq, B : Eq, C : Eq, D : Eq, E : Eq, F : Eq, G : Eq, H : Eq, I : Eq] Node::zip9(Self[A], Self[B], Self[C], Self[D], Self[E], Self[F], Self[G], Self[H], Self[I]) -> Self[(A, B, C, D, E, F, G, H, I)]
+pub impl[T] Compare for Node[T]
+pub impl[T] Eq for Node[T]
+
+// Type aliases
+
+// Traits
+trait ErasedNode
+

@@ -1,0 +1,72 @@
+name: sanitizer-check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  sanitizer-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      ASAN_OPTIONS: detect_leaks=1:halt_on_error=1:abort_on_error=1:fast_unwind_on_malloc=0
+      LSAN_OPTIONS: exitcode=23:max_leaks=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install MoonBit
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: moon version
+        run: |
+          moon version --all
+          moonrun --version
+
+      - name: moon update
+        run: moon update
+
+      - name: disable mimalloc
+        run: |
+          printf '' > dummy_libmoonbitrun.c
+          gcc dummy_libmoonbitrun.c -c -o "$HOME/.moon/lib/libmoonbitrun.o"
+
+      - name: setup address sanitizer
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          marker = '"cc-flags": "-fsanitize=address -g -fno-omit-frame-pointer"'
+          link_config = '''  link: {
+            "native": {
+              "cc-flags": "-fsanitize=address -g -fno-omit-frame-pointer",
+              "stub-cc-flags": "-fsanitize=address -g -fno-omit-frame-pointer",
+            },
+          },
+          '''
+
+          for pkg in Path(".").rglob("moon.pkg"):
+            if any(part in {"_build", "target"} for part in pkg.parts):
+              continue
+
+            content = pkg.read_text()
+            if marker in content:
+              continue
+            if "options(\n" in content:
+              content = content.replace("options(\n", "options(\n" + link_config, 1)
+            elif "options(" in content:
+              content = content.replace("options(", "options(\n" + link_config, 1)
+            else:
+              if not content.endswith("\n"):
+                content += "\n"
+              content += "\noptions(\n" + link_config + ")\n"
+            pkg.write_text(content)
+          PY
+
+      - name: run leak stress package with address sanitizer
+        run: moon run --target native leak_stress
