@@ -1,14 +1,8 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "username/acyclic"
-
-import {
-  "moonbitlang/core/set",
-}
+package "Yoorkin/duplix"
 
 // Values
 pub fn[T] input(T) -> Input[T]
-
-pub fn stabilize(&ErasedNode) -> Unit
 
 // Errors
 
@@ -54,5 +48,4 @@ pub impl[T] Eq for Node[T]
 // Type aliases
 
 // Traits
-trait ErasedNode
 

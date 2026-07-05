@@ -9,7 +9,7 @@
 //   "moonbitlang/x@0.4.6",
 // }
 
-name = "username/acyclic"
+name = "Yoorkin/duplix"
 
 version = "0.1.0"
 
@@ -21,6 +21,6 @@ license = "Apache-2.0"
 
 keywords = [ ]
 
-preferred_target = "wasm-gc"
+preferred_target = "native"
 
 description = ""

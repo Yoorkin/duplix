@@ -7,9 +7,9 @@ fn assert_int_eq(label : String, actual : Int, expected : Int) -> Unit raise {
 
 ///|
 fn stress_branch_flip(offset : Int) -> Unit raise {
-  let selector = @acyclic.input(true)
-  let left = @acyclic.input(offset)
-  let right = @acyclic.input(offset + 1000)
+  let selector = @duplix.input(true)
+  let left = @duplix.input(offset)
+  let right = @duplix.input(offset + 1000)
   let left_node = left.to_node()
   let right_node = right.to_node()
   let left_mapped = left_node.map(x => x + 1)
@@ -35,11 +35,11 @@ fn stress_branch_flip(offset : Int) -> Unit raise {
 
 ///|
 fn stress_nested_bind(offset : Int) -> Unit raise {
-  let outer_selector = @acyclic.input(true)
-  let inner_selector = @acyclic.input(true)
-  let x = @acyclic.input(offset)
-  let y = @acyclic.input(offset + 100)
-  let z = @acyclic.input(offset + 1000)
+  let outer_selector = @duplix.input(true)
+  let inner_selector = @duplix.input(true)
+  let x = @duplix.input(offset)
+  let y = @duplix.input(offset + 100)
+  let z = @duplix.input(offset + 1000)
   let x_mapped = x.to_node().map(x => x + 1)
   let y_mapped = y.to_node().map(y => y + 2)
   let z_mapped = z.to_node().map(z => z + 3)
@@ -69,7 +69,7 @@ fn stress_nested_bind(offset : Int) -> Unit raise {
 
 ///|
 fn stress_shared_diamond(offset : Int) -> Unit raise {
-  let source = @acyclic.input(offset)
+  let source = @duplix.input(offset)
   let source_node = source.to_node()
   let left = source_node.map(x => x + 10)
   let right = source_node.map(x => x + 20)
@@ -88,7 +88,7 @@ fn stress_shared_diamond(offset : Int) -> Unit raise {
 
 ///|
 fn stress_cutoff_clean_reads(offset : Int) -> Unit raise {
-  let source = @acyclic.input(offset)
+  let source = @duplix.input(offset)
   let constant = source.to_node().map(_ => 10)
   let downstream = constant.map(x => x * 3)
 
@@ -103,30 +103,30 @@ fn stress_cutoff_clean_reads(offset : Int) -> Unit raise {
 
 ///|
 fn stress_wide_map_zip(offset : Int) -> Unit raise {
-  let x1 = @acyclic.input(offset + 1)
-  let x2 = @acyclic.input(offset + 2)
-  let x3 = @acyclic.input(offset + 3)
-  let x4 = @acyclic.input(offset + 4)
-  let x5 = @acyclic.input(offset + 5)
-  let x6 = @acyclic.input(offset + 6)
-  let x7 = @acyclic.input(offset + 7)
-  let x8 = @acyclic.input(offset + 8)
-  let x9 = @acyclic.input(offset + 9)
-  let x10 = @acyclic.input(offset + 10)
-  let x11 = @acyclic.input(offset + 11)
-  let x12 = @acyclic.input(offset + 12)
-  let y1 = @acyclic.input(offset + 1)
-  let y2 = @acyclic.input(offset + 2)
-  let y3 = @acyclic.input(offset + 3)
-  let y4 = @acyclic.input(offset + 4)
-  let y5 = @acyclic.input(offset + 5)
-  let y6 = @acyclic.input(offset + 6)
-  let y7 = @acyclic.input(offset + 7)
-  let y8 = @acyclic.input(offset + 8)
-  let y9 = @acyclic.input(offset + 9)
-  let y10 = @acyclic.input(offset + 10)
-  let y11 = @acyclic.input(offset + 11)
-  let y12 = @acyclic.input(offset + 12)
+  let x1 = @duplix.input(offset + 1)
+  let x2 = @duplix.input(offset + 2)
+  let x3 = @duplix.input(offset + 3)
+  let x4 = @duplix.input(offset + 4)
+  let x5 = @duplix.input(offset + 5)
+  let x6 = @duplix.input(offset + 6)
+  let x7 = @duplix.input(offset + 7)
+  let x8 = @duplix.input(offset + 8)
+  let x9 = @duplix.input(offset + 9)
+  let x10 = @duplix.input(offset + 10)
+  let x11 = @duplix.input(offset + 11)
+  let x12 = @duplix.input(offset + 12)
+  let y1 = @duplix.input(offset + 1)
+  let y2 = @duplix.input(offset + 2)
+  let y3 = @duplix.input(offset + 3)
+  let y4 = @duplix.input(offset + 4)
+  let y5 = @duplix.input(offset + 5)
+  let y6 = @duplix.input(offset + 6)
+  let y7 = @duplix.input(offset + 7)
+  let y8 = @duplix.input(offset + 8)
+  let y9 = @duplix.input(offset + 9)
+  let y10 = @duplix.input(offset + 10)
+  let y11 = @duplix.input(offset + 11)
+  let y12 = @duplix.input(offset + 12)
   let sum = x1
     .to_node()
     .map12(

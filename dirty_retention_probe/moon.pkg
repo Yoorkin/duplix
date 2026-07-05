@@ -1,5 +1,5 @@
 import {
-  "username/acyclic",
+  "Yoorkin/duplix",
 }
 
 supported_targets = "native"

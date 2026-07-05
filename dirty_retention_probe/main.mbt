@@ -1,11 +1,11 @@
 ///|
-extern "c" fn monotonic_us() -> Int64 = "acyclic_probe_monotonic_us"
+extern "c" fn monotonic_us() -> Int64 = "duplix_probe_monotonic_us"
 
 ///|
-extern "c" fn current_rss_kb() -> Int64 = "acyclic_probe_current_rss_kb"
+extern "c" fn current_rss_kb() -> Int64 = "duplix_probe_current_rss_kb"
 
 ///|
-extern "c" fn release_unused_memory() -> Unit = "acyclic_probe_release_unused_memory"
+extern "c" fn release_unused_memory() -> Unit = "duplix_probe_release_unused_memory"
 
 ///|
 let steady_iterations = 200
@@ -49,7 +49,7 @@ fn print_row(
 
 ///|
 fn warmup() -> Unit {
-  let root = @acyclic.input(0)
+  let root = @duplix.input(0)
   let root_node = root.to_node()
   let live = root_node.map(x => x)
   ignore(live.read())
@@ -63,8 +63,8 @@ fn warmup() -> Unit {
 
 ///|
 fn measure_steady(
-  root : @acyclic.Input[Int],
-  live : @acyclic.Node[Int],
+  root : @duplix.Input[Int],
+  live : @duplix.Node[Int],
   start_value : Int,
 ) -> (Int64, Int) {
   timed_us(() => {
@@ -78,7 +78,7 @@ fn measure_steady(
 }
 
 ///|
-fn create_dead_map_fanout(root_node : @acyclic.Node[Int], n : Int) -> Int {
+fn create_dead_map_fanout(root_node : @duplix.Node[Int], n : Int) -> Int {
   let mut checksum = 0
   for i in 0..<n {
     let derived = root_node.map(x => x + i)
@@ -88,7 +88,7 @@ fn create_dead_map_fanout(root_node : @acyclic.Node[Int], n : Int) -> Int {
 }
 
 ///|
-fn create_dead_chain(root_node : @acyclic.Node[Int], n : Int) -> Int {
+fn create_dead_chain(root_node : @duplix.Node[Int], n : Int) -> Int {
   let mut checksum = 0
   for i in 0..<n {
     let one = root_node.map(x => x + i)
@@ -102,9 +102,9 @@ fn create_dead_chain(root_node : @acyclic.Node[Int], n : Int) -> Int {
 
 ///|
 fn create_dead_bind(
-  selector_node : @acyclic.Node[Bool],
-  left_node : @acyclic.Node[Int],
-  right_node : @acyclic.Node[Int],
+  selector_node : @duplix.Node[Bool],
+  left_node : @duplix.Node[Int],
+  right_node : @duplix.Node[Int],
   n : Int,
 ) -> Int {
   let mut checksum = 0
@@ -123,18 +123,18 @@ fn create_dead_bind(
 
 ///|
 fn create_dead_map12(
-  n1 : @acyclic.Node[Int],
-  n2 : @acyclic.Node[Int],
-  n3 : @acyclic.Node[Int],
-  n4 : @acyclic.Node[Int],
-  n5 : @acyclic.Node[Int],
-  n6 : @acyclic.Node[Int],
-  n7 : @acyclic.Node[Int],
-  n8 : @acyclic.Node[Int],
-  n9 : @acyclic.Node[Int],
-  n10 : @acyclic.Node[Int],
-  n11 : @acyclic.Node[Int],
-  n12 : @acyclic.Node[Int],
+  n1 : @duplix.Node[Int],
+  n2 : @duplix.Node[Int],
+  n3 : @duplix.Node[Int],
+  n4 : @duplix.Node[Int],
+  n5 : @duplix.Node[Int],
+  n6 : @duplix.Node[Int],
+  n7 : @duplix.Node[Int],
+  n8 : @duplix.Node[Int],
+  n9 : @duplix.Node[Int],
+  n10 : @duplix.Node[Int],
+  n11 : @duplix.Node[Int],
+  n12 : @duplix.Node[Int],
   n : Int,
 ) -> Int {
   let mut checksum = 0
@@ -160,18 +160,18 @@ fn create_dead_map12(
 
 ///|
 fn create_dead_zip12(
-  n1 : @acyclic.Node[Int],
-  n2 : @acyclic.Node[Int],
-  n3 : @acyclic.Node[Int],
-  n4 : @acyclic.Node[Int],
-  n5 : @acyclic.Node[Int],
-  n6 : @acyclic.Node[Int],
-  n7 : @acyclic.Node[Int],
-  n8 : @acyclic.Node[Int],
-  n9 : @acyclic.Node[Int],
-  n10 : @acyclic.Node[Int],
-  n11 : @acyclic.Node[Int],
-  n12 : @acyclic.Node[Int],
+  n1 : @duplix.Node[Int],
+  n2 : @duplix.Node[Int],
+  n3 : @duplix.Node[Int],
+  n4 : @duplix.Node[Int],
+  n5 : @duplix.Node[Int],
+  n6 : @duplix.Node[Int],
+  n7 : @duplix.Node[Int],
+  n8 : @duplix.Node[Int],
+  n9 : @duplix.Node[Int],
+  n10 : @duplix.Node[Int],
+  n11 : @duplix.Node[Int],
+  n12 : @duplix.Node[Int],
   n : Int,
 ) -> Int {
   let mut checksum = 0
@@ -190,7 +190,7 @@ fn create_dead_zip12(
 ///|
 fn run_map_fanout(n : Int) -> Unit {
   release_unused_memory()
-  let root = @acyclic.input(1)
+  let root = @duplix.input(1)
   let root_node = root.to_node()
   let live = root_node.map(x => x)
   ignore(live.read())
@@ -213,7 +213,7 @@ fn run_map_fanout(n : Int) -> Unit {
 ///|
 fn run_chain(n : Int) -> Unit {
   release_unused_memory()
-  let root = @acyclic.input(1)
+  let root = @duplix.input(1)
   let root_node = root.to_node()
   let live = root_node.map(x => x)
   ignore(live.read())
@@ -236,9 +236,9 @@ fn run_chain(n : Int) -> Unit {
 ///|
 fn run_bind_branch(n : Int) -> Unit {
   release_unused_memory()
-  let selector = @acyclic.input(true)
-  let left = @acyclic.input(1)
-  let right = @acyclic.input(100)
+  let selector = @duplix.input(true)
+  let left = @duplix.input(1)
+  let right = @duplix.input(100)
   let selector_node = selector.to_node()
   let left_node = left.to_node()
   let right_node = right.to_node()
@@ -270,8 +270,8 @@ fn run_bind_branch(n : Int) -> Unit {
 ///|
 fn run_bind_live_root_subgraph(n : Int) -> Unit {
   release_unused_memory()
-  let selector = @acyclic.input(0)
-  let payload = @acyclic.input(1)
+  let selector = @duplix.input(0)
+  let payload = @duplix.input(1)
   let selector_node = selector.to_node()
   let payload_node = payload.to_node()
   let output = selector_node.bind(token => {
@@ -302,10 +302,10 @@ fn run_bind_live_root_subgraph(n : Int) -> Unit {
 ///|
 fn run_bind_live_local_subgraph(n : Int) -> Unit {
   release_unused_memory()
-  let selector = @acyclic.input(0)
+  let selector = @duplix.input(0)
   let selector_node = selector.to_node()
   let output = selector_node.bind(token => {
-    let temp_input = @acyclic.input(token)
+    let temp_input = @duplix.input(token)
     let mapped = temp_input.to_node().map(value => value + 1)
     mapped.map(value => value * 2)
   })
@@ -340,18 +340,18 @@ fn run_bind_live_local_subgraph(n : Int) -> Unit {
 ///|
 fn run_map12(n : Int) -> Unit {
   release_unused_memory()
-  let i1 = @acyclic.input(1)
-  let i2 = @acyclic.input(2)
-  let i3 = @acyclic.input(3)
-  let i4 = @acyclic.input(4)
-  let i5 = @acyclic.input(5)
-  let i6 = @acyclic.input(6)
-  let i7 = @acyclic.input(7)
-  let i8 = @acyclic.input(8)
-  let i9 = @acyclic.input(9)
-  let i10 = @acyclic.input(10)
-  let i11 = @acyclic.input(11)
-  let i12 = @acyclic.input(12)
+  let i1 = @duplix.input(1)
+  let i2 = @duplix.input(2)
+  let i3 = @duplix.input(3)
+  let i4 = @duplix.input(4)
+  let i5 = @duplix.input(5)
+  let i6 = @duplix.input(6)
+  let i7 = @duplix.input(7)
+  let i8 = @duplix.input(8)
+  let i9 = @duplix.input(9)
+  let i10 = @duplix.input(10)
+  let i11 = @duplix.input(11)
+  let i12 = @duplix.input(12)
   let n1 = i1.to_node()
   let n2 = i2.to_node()
   let n3 = i3.to_node()
@@ -387,18 +387,18 @@ fn run_map12(n : Int) -> Unit {
 ///|
 fn run_zip12(n : Int) -> Unit {
   release_unused_memory()
-  let i1 = @acyclic.input(1)
-  let i2 = @acyclic.input(2)
-  let i3 = @acyclic.input(3)
-  let i4 = @acyclic.input(4)
-  let i5 = @acyclic.input(5)
-  let i6 = @acyclic.input(6)
-  let i7 = @acyclic.input(7)
-  let i8 = @acyclic.input(8)
-  let i9 = @acyclic.input(9)
-  let i10 = @acyclic.input(10)
-  let i11 = @acyclic.input(11)
-  let i12 = @acyclic.input(12)
+  let i1 = @duplix.input(1)
+  let i2 = @duplix.input(2)
+  let i3 = @duplix.input(3)
+  let i4 = @duplix.input(4)
+  let i5 = @duplix.input(5)
+  let i6 = @duplix.input(6)
+  let i7 = @duplix.input(7)
+  let i8 = @duplix.input(8)
+  let i9 = @duplix.input(9)
+  let i10 = @duplix.input(10)
+  let i11 = @duplix.input(11)
+  let i12 = @duplix.input(12)
   let n1 = i1.to_node()
   let n2 = i2.to_node()
   let n3 = i3.to_node()
@@ -438,7 +438,7 @@ fn run_baseline_ephemeral(n : Int) -> Unit {
   let (build_us, checksum) = timed_us(() => {
     let mut checksum = 0
     for i in 0..<n {
-      let root = @acyclic.input(i)
+      let root = @duplix.input(i)
       let derived = root.to_node().map(x => x + 1)
       checksum += derived.read()
     }
@@ -454,7 +454,7 @@ fn run_baseline_ephemeral(n : Int) -> Unit {
 ///|
 fn run_interleaved_map(batch_size : Int, batches : Int) -> Unit {
   release_unused_memory()
-  let root = @acyclic.input(1)
+  let root = @duplix.input(1)
   let root_node = root.to_node()
   let live = root_node.map(x => x)
   ignore(live.read())

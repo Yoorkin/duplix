@@ -1,6 +1,6 @@
 # Dirty Retention Probe
 
-Native-only probe for retained dirty subscriptions in `username/acyclic`.
+Native-only probe for retained dirty subscriptions in `Yoorkin/duplix`.
 
 ## What It Measures
 

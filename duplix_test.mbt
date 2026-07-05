@@ -1,10 +1,10 @@
-// Blackbox tests run against the package's public API. Use `@acyclic` to import.
+// Blackbox tests run against the package's public API. Use `@duplix` to import.
 // Prefer high-level behaviors over implementation details.
 // Run `moon test` to execute and `moon test --update` to refresh snapshots.
 
 ///|
 test "propagate changed input" {
-  let x = @acyclic.input(10)
+  let x = @duplix.input(10)
   let y = x.to_node().map(x => x + 1).map(x => "\{x}")
 
   inspect(y.read(), content="11")
@@ -14,7 +14,7 @@ test "propagate changed input" {
 
 ///|
 test "cutoff skips unchanged downstream" {
-  let x = @acyclic.input(10)
+  let x = @duplix.input(10)
   let mut parent_runs = 0
   let mut child_runs = 0
   let parent = x
@@ -39,7 +39,7 @@ test "cutoff skips unchanged downstream" {
 
 ///|
 test "setting same input value cuts off mapped parent" {
-  let x = @acyclic.input(10)
+  let x = @duplix.input(10)
   let mut parent_runs = 0
   let mut child_runs = 0
   let parent = x
@@ -64,7 +64,7 @@ test "setting same input value cuts off mapped parent" {
 
 ///|
 test "clean reads do not recompute" {
-  let x = @acyclic.input(1)
+  let x = @duplix.input(1)
   let mut runs = 0
   let y = x
     .to_node()
@@ -81,9 +81,9 @@ test "clean reads do not recompute" {
 
 ///|
 test "bind switches dynamic child and detaches inactive child" {
-  let use_left = @acyclic.input(true)
-  let left_input = @acyclic.input(1)
-  let right_input = @acyclic.input(10)
+  let use_left = @duplix.input(true)
+  let left_input = @duplix.input(1)
+  let right_input = @duplix.input(10)
   let mut choose_runs = 0
   let mut left_runs = 0
   let mut right_runs = 0
@@ -166,9 +166,9 @@ test "bind switches dynamic child and detaches inactive child" {
 
 ///|
 test "bind cuts off downstream when switched child has same value" {
-  let use_left = @acyclic.input(true)
-  let left_input = @acyclic.input(10)
-  let right_input = @acyclic.input(10)
+  let use_left = @duplix.input(true)
+  let left_input = @duplix.input(10)
+  let right_input = @duplix.input(10)
   let mut choose_runs = 0
   let mut output_runs = 0
   let bound = use_left
@@ -201,8 +201,8 @@ test "bind cuts off downstream when switched child has same value" {
 
 ///|
 test "map2 recomputes when one parent changes" {
-  let x = @acyclic.input(1)
-  let y = @acyclic.input(10)
+  let x = @duplix.input(1)
+  let y = @duplix.input(10)
   let mut runs = 0
   let sum = x
     .to_node()
@@ -223,18 +223,18 @@ test "map2 recomputes when one parent changes" {
 
 ///|
 test "map12 wrapper" {
-  let x1 = @acyclic.input(1)
-  let x2 = @acyclic.input(2)
-  let x3 = @acyclic.input(3)
-  let x4 = @acyclic.input(4)
-  let x5 = @acyclic.input(5)
-  let x6 = @acyclic.input(6)
-  let x7 = @acyclic.input(7)
-  let x8 = @acyclic.input(8)
-  let x9 = @acyclic.input(9)
-  let x10 = @acyclic.input(10)
-  let x11 = @acyclic.input(11)
-  let x12 = @acyclic.input(12)
+  let x1 = @duplix.input(1)
+  let x2 = @duplix.input(2)
+  let x3 = @duplix.input(3)
+  let x4 = @duplix.input(4)
+  let x5 = @duplix.input(5)
+  let x6 = @duplix.input(6)
+  let x7 = @duplix.input(7)
+  let x8 = @duplix.input(8)
+  let x9 = @duplix.input(9)
+  let x10 = @duplix.input(10)
+  let x11 = @duplix.input(11)
+  let x12 = @duplix.input(12)
   let sum = x1
     .to_node()
     .map12(
@@ -261,18 +261,18 @@ test "map12 wrapper" {
 
 ///|
 test "zip12 wrapper" {
-  let x1 = @acyclic.input(1)
-  let x2 = @acyclic.input(2)
-  let x3 = @acyclic.input(3)
-  let x4 = @acyclic.input(4)
-  let x5 = @acyclic.input(5)
-  let x6 = @acyclic.input(6)
-  let x7 = @acyclic.input(7)
-  let x8 = @acyclic.input(8)
-  let x9 = @acyclic.input(9)
-  let x10 = @acyclic.input(10)
-  let x11 = @acyclic.input(11)
-  let x12 = @acyclic.input(12)
+  let x1 = @duplix.input(1)
+  let x2 = @duplix.input(2)
+  let x3 = @duplix.input(3)
+  let x4 = @duplix.input(4)
+  let x5 = @duplix.input(5)
+  let x6 = @duplix.input(6)
+  let x7 = @duplix.input(7)
+  let x8 = @duplix.input(8)
+  let x9 = @duplix.input(9)
+  let x10 = @duplix.input(10)
+  let x11 = @duplix.input(11)
+  let x12 = @duplix.input(12)
   let tuple = x1
     .to_node()
     .zip12(

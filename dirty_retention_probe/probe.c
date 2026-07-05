@@ -16,7 +16,7 @@
 #endif
 
 MOONBIT_FFI_EXPORT
-int64_t acyclic_probe_monotonic_us(void) {
+int64_t duplix_probe_monotonic_us(void) {
   struct timespec ts;
   if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
     return -1;
@@ -25,7 +25,7 @@ int64_t acyclic_probe_monotonic_us(void) {
 }
 
 MOONBIT_FFI_EXPORT
-int64_t acyclic_probe_current_rss_kb(void) {
+int64_t duplix_probe_current_rss_kb(void) {
 #if defined(__APPLE__)
   mach_task_basic_info_data_t info;
   mach_msg_type_number_t count = MACH_TASK_BASIC_INFO_COUNT;
@@ -68,7 +68,7 @@ int64_t acyclic_probe_current_rss_kb(void) {
 }
 
 MOONBIT_FFI_EXPORT
-void acyclic_probe_release_unused_memory(void) {
+void duplix_probe_release_unused_memory(void) {
 #if defined(__linux__) && defined(__GLIBC__)
   malloc_trim(0);
 #elif defined(__APPLE__)
