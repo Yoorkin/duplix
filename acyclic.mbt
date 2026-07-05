@@ -13,7 +13,7 @@ fn get_uuid() -> Int {
 /// child2 ---+
 ///
 /// parent_expr = child1_expr + child2_expr
-trait ErasedNode {
+priv trait ErasedNode {
   fn get_id(Self) -> Int
   fn childs(Self) -> Array[&ErasedNode]
   fn dirty_flag(Self) -> DirtyFlag
@@ -122,7 +122,7 @@ pub fn[T] input(x : T) -> Input[T] {
 /// child_a ---derived---> parent_b
 pub fn[A : Eq, B] Node::map(a : Node[A], f : (A) -> B) -> Node[B] {
   let dirty_b = { dirty: true, parents: [], id: get_uuid() }
-  a.dirty_flag.parents.push(dirty_b)
+  // a.dirty_flag.parents.push(dirty_b)
   {
     id: get_uuid(),
     value: None,
@@ -145,7 +145,7 @@ pub fn[A : Eq, B : Eq] Node::bind(a : Node[A], f : (A) -> Node[B]) -> Node[B] {
 
     // delete: b1 ---derived---> output
     // add:    b2 ---derived---> output
-    if b1_dirty_sub is Some(b1) {
+    if b1_dirty_sub is Some(b1) && b1.id != a.dirty_flag().id {
       if b1.parents.search(output_dirty_flag) is Some(i) {
         ignore(b1.parents.remove(i))
       }
@@ -165,7 +165,7 @@ pub fn[A : Eq, B : Eq] Node::bind(a : Node[A], f : (A) -> Node[B]) -> Node[B] {
   }
 
   // a ---derived--->output
-  a.dirty_flag.parents.push(output_dirty_flag)
+  // a.dirty_flag.parents.push(output_dirty_flag)
   output_childs.push(a)
 
   {
@@ -179,12 +179,23 @@ pub fn[A : Eq, B : Eq] Node::bind(a : Node[A], f : (A) -> Node[B]) -> Node[B] {
 
 ///|
 pub fn[A : Eq] Node::read(a : Node[A]) -> A {
-  stabilize(a)
+  pull_value(a)
   a.value.unwrap()
 }
 
 ///|
-pub fn stabilize(node : &ErasedNode) -> Unit {
+pub fn[T : Eq] Input::set(input : Input[T], x : T) -> Unit {
+  input.0.compute = () => x
+  push_dirty(input.0)
+}
+
+///|
+pub fn[T] Input::to_node(input : Input[T]) -> Node[T] {
+  input.0
+}
+
+///|
+fn pull_value(node : &ErasedNode) -> Unit {
   let stack = [(node, false)]
   let seen = Set([])
   let recomputes = []
@@ -208,29 +219,28 @@ pub fn stabilize(node : &ErasedNode) -> Unit {
 
   let changed_nodes = Set([])
   for node in recomputes {
+    for child in node.childs() {
+      if child.dirty_flag().parents.all(x => x.id != node.dirty_flag().id) {
+        child.dirty_flag().parents.push(node.dirty_flag())
+      }
+    }
     node.recompute(changed_nodes)
   }
 }
 
 ///|
-pub fn[T : Eq] Input::set(input : Input[T], x : T) -> Unit {
-  input.0.compute = () => x
-  mark_dirty(input.0)
-}
-
-///|
-pub fn[T] Input::to_node(input : Input[T]) -> Node[T] {
-  input.0
-}
-
-///|
-fn mark_dirty(node : &ErasedNode) -> Unit {
-  let traverses = @queue.Queue([node.dirty_flag()])
-  while traverses.pop() is Some(x) {
-    guard !x.dirty else { continue }
-    x.dirty = true
-    for p in x.parents {
-      traverses.push(p)
+fn push_dirty(node : &ErasedNode) -> Unit {
+  let traverses = @queue.Queue([(node.dirty_flag(), false)])
+  while traverses.pop() is Some((x, expanded)) {
+    if expanded {
+      x.parents.clear()
+    } else {
+      guard !x.dirty else { continue }
+      x.dirty = true
+      for p in x.parents {
+        traverses.push((p, false))
+      }
+      traverses.push((x, true))
     }
   }
 }
