@@ -43,6 +43,13 @@ pub fn[A : Eq, B : Eq, C : Eq, D : Eq, E : Eq, F : Eq, G : Eq, H : Eq, I : Eq] N
 pub impl[T] Compare for Node[T]
 pub impl[T] Eq for Node[T]
 
+type Scope
+pub fn Scope::Scope() -> Self
+pub fn Scope::add_cleanup(Self, () -> Unit) -> Unit
+pub fn[A : Eq] Scope::add_node(Self, Node[A]) -> Unit
+pub fn Scope::add_scope(Self, Self) -> Unit
+pub fn Scope::dispose(Self) -> Unit
+
 // Type aliases
 
 // Traits

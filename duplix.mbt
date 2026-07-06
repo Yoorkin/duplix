@@ -23,7 +23,6 @@ priv trait ErasedNode {
 ///|
 ///       child ---derived---> parent
 /// 
-/// 
 ///          Node(parent) ---ref---> Node(child)
 ///              |                        |
 ///             ref                      ref
