@@ -2,7 +2,7 @@
 package "Yoorkin/duplix"
 
 // Values
-pub fn[T] input(T) -> Input[T]
+pub fn[T : Eq] input(T) -> (Node[T], (T) -> Unit)
 
 // Errors
 
@@ -10,10 +10,6 @@ pub fn[T] input(T) -> Input[T]
 type DirtyFlag
 pub impl Compare for DirtyFlag
 pub impl Eq for DirtyFlag
-
-type Input[T]
-pub fn[T : Eq] Input::set(Self[T], T) -> Unit
-pub fn[T] Input::to_node(Self[T]) -> Node[T]
 
 type Node[T]
 pub fn[A : Eq, B : Eq] Node::bind(Self[A], (A) -> Self[B]) -> Self[B]

@@ -49,28 +49,28 @@ fn print_row(
 
 ///|
 fn warmup() -> Unit {
-  let root = @duplix.input(0)
-  let root_node = root.to_node()
+  let (root, set_root) = @duplix.input(0)
+  let root_node = root
   let live = root_node.map(x => x)
   ignore(live.read())
   for i in 0..<200 {
     let derived = root_node.map(x => x + i)
     ignore(derived.read())
   }
-  root.set(1)
+  set_root(1)
   ignore(live.read())
 }
 
 ///|
 fn measure_steady(
-  root : @duplix.Input[Int],
+  set_root : (Int) -> Unit,
   live : @duplix.Node[Int],
   start_value : Int,
 ) -> (Int64, Int) {
   timed_us(() => {
     let mut checksum = 0
     for i in 0..<steady_iterations {
-      root.set(start_value + i)
+      set_root(start_value + i)
       checksum += live.read()
     }
     checksum
@@ -190,19 +190,19 @@ fn create_dead_zip12(
 ///|
 fn run_map_fanout(n : Int) -> Unit {
   release_unused_memory()
-  let root = @duplix.input(1)
-  let root_node = root.to_node()
+  let (root, set_root) = @duplix.input(1)
+  let root_node = root
   let live = root_node.map(x => x)
   ignore(live.read())
   let rss_before = current_rss_kb()
   let mut checksum = create_dead_map_fanout(root_node, n)
   let rss_after_build = current_rss_kb()
   let (first_dirty_us, first_result) = timed_us(() => {
-    root.set(10)
+    set_root(10)
     live.read()
   })
   checksum += first_result
-  let (steady_total_us, steady_checksum) = measure_steady(root, live, 1000)
+  let (steady_total_us, steady_checksum) = measure_steady(set_root, live, 1000)
   checksum += steady_checksum
   print_row(
     "map_fanout", n, 1, 1, rss_before, rss_after_build, first_dirty_us, steady_total_us,
@@ -213,19 +213,19 @@ fn run_map_fanout(n : Int) -> Unit {
 ///|
 fn run_chain(n : Int) -> Unit {
   release_unused_memory()
-  let root = @duplix.input(1)
-  let root_node = root.to_node()
+  let (root, set_root) = @duplix.input(1)
+  let root_node = root
   let live = root_node.map(x => x)
   ignore(live.read())
   let rss_before = current_rss_kb()
   let mut checksum = create_dead_chain(root_node, n)
   let rss_after_build = current_rss_kb()
   let (first_dirty_us, first_result) = timed_us(() => {
-    root.set(10)
+    set_root(10)
     live.read()
   })
   checksum += first_result
-  let (steady_total_us, steady_checksum) = measure_steady(root, live, 1000)
+  let (steady_total_us, steady_checksum) = measure_steady(set_root, live, 1000)
   checksum += steady_checksum
   print_row(
     "chain_depth4", n, 4, 1, rss_before, rss_after_build, first_dirty_us, steady_total_us,
@@ -236,26 +236,26 @@ fn run_chain(n : Int) -> Unit {
 ///|
 fn run_bind_branch(n : Int) -> Unit {
   release_unused_memory()
-  let selector = @duplix.input(true)
-  let left = @duplix.input(1)
-  let right = @duplix.input(100)
-  let selector_node = selector.to_node()
-  let left_node = left.to_node()
-  let right_node = right.to_node()
+  let (selector, set_selector) = @duplix.input(true)
+  let (left, _) = @duplix.input(1)
+  let (right, _) = @duplix.input(100)
+  let selector_node = selector
+  let left_node = left
+  let right_node = right
   let live = selector_node.map(use_left => if use_left { 1 } else { 0 })
   ignore(live.read())
   let rss_before = current_rss_kb()
   let mut checksum = create_dead_bind(selector_node, left_node, right_node, n)
   let rss_after_build = current_rss_kb()
   let (first_dirty_us, first_result) = timed_us(() => {
-    selector.set(false)
+    set_selector(false)
     live.read()
   })
   checksum += first_result
   let (steady_total_us, steady_checksum) = timed_us(() => {
     let mut checksum = 0
     for i in 0..<steady_iterations {
-      selector.set(i % 2 == 0)
+      set_selector(i % 2 == 0)
       checksum += live.read()
     }
     checksum
@@ -270,10 +270,10 @@ fn run_bind_branch(n : Int) -> Unit {
 ///|
 fn run_bind_live_root_subgraph(n : Int) -> Unit {
   release_unused_memory()
-  let selector = @duplix.input(0)
-  let payload = @duplix.input(1)
-  let selector_node = selector.to_node()
-  let payload_node = payload.to_node()
+  let (selector, set_selector) = @duplix.input(0)
+  let (payload, set_payload) = @duplix.input(1)
+  let selector_node = selector
+  let payload_node = payload
   let output = selector_node.bind(token => {
     let mapped = payload_node.map(value => value + token)
     mapped.map(value => value * 2)
@@ -282,16 +282,18 @@ fn run_bind_live_root_subgraph(n : Int) -> Unit {
   let rss_before = current_rss_kb()
   let mut checksum = 0
   for i in 1..<=n {
-    selector.set(i)
+    set_selector(i)
     checksum += output.read()
   }
   let rss_after_build = current_rss_kb()
   let (first_dirty_us, first_result) = timed_us(() => {
-    payload.set(10)
+    set_payload(10)
     output.read()
   })
   checksum += first_result
-  let (steady_total_us, steady_checksum) = measure_steady(payload, output, 1000)
+  let (steady_total_us, steady_checksum) = measure_steady(
+    set_payload, output, 1000,
+  )
   checksum += steady_checksum
   print_row(
     "bind_live_root_subgraph", n, 2, 1, rss_before, rss_after_build, first_dirty_us,
@@ -302,30 +304,30 @@ fn run_bind_live_root_subgraph(n : Int) -> Unit {
 ///|
 fn run_bind_live_local_subgraph(n : Int) -> Unit {
   release_unused_memory()
-  let selector = @duplix.input(0)
-  let selector_node = selector.to_node()
+  let (selector, set_selector) = @duplix.input(0)
+  let selector_node = selector
   let output = selector_node.bind(token => {
-    let temp_input = @duplix.input(token)
-    let mapped = temp_input.to_node().map(value => value + 1)
+    let (temp_input, _) = @duplix.input(token)
+    let mapped = temp_input.map(value => value + 1)
     mapped.map(value => value * 2)
   })
   ignore(output.read())
   let rss_before = current_rss_kb()
   let mut checksum = 0
   for i in 1..<=n {
-    selector.set(i)
+    set_selector(i)
     checksum += output.read()
   }
   let rss_after_build = current_rss_kb()
   let (first_dirty_us, first_result) = timed_us(() => {
-    selector.set(n + 1)
+    set_selector(n + 1)
     output.read()
   })
   checksum += first_result
   let (steady_total_us, steady_checksum) = timed_us(() => {
     let mut checksum = 0
     for i in 0..<steady_iterations {
-      selector.set(n + 1000 + i)
+      set_selector(n + 1000 + i)
       checksum += output.read()
     }
     checksum
@@ -340,30 +342,30 @@ fn run_bind_live_local_subgraph(n : Int) -> Unit {
 ///|
 fn run_map12(n : Int) -> Unit {
   release_unused_memory()
-  let i1 = @duplix.input(1)
-  let i2 = @duplix.input(2)
-  let i3 = @duplix.input(3)
-  let i4 = @duplix.input(4)
-  let i5 = @duplix.input(5)
-  let i6 = @duplix.input(6)
-  let i7 = @duplix.input(7)
-  let i8 = @duplix.input(8)
-  let i9 = @duplix.input(9)
-  let i10 = @duplix.input(10)
-  let i11 = @duplix.input(11)
-  let i12 = @duplix.input(12)
-  let n1 = i1.to_node()
-  let n2 = i2.to_node()
-  let n3 = i3.to_node()
-  let n4 = i4.to_node()
-  let n5 = i5.to_node()
-  let n6 = i6.to_node()
-  let n7 = i7.to_node()
-  let n8 = i8.to_node()
-  let n9 = i9.to_node()
-  let n10 = i10.to_node()
-  let n11 = i11.to_node()
-  let n12 = i12.to_node()
+  let (i1, set_i1) = @duplix.input(1)
+  let (i2, _) = @duplix.input(2)
+  let (i3, _) = @duplix.input(3)
+  let (i4, _) = @duplix.input(4)
+  let (i5, _) = @duplix.input(5)
+  let (i6, _) = @duplix.input(6)
+  let (i7, _) = @duplix.input(7)
+  let (i8, _) = @duplix.input(8)
+  let (i9, _) = @duplix.input(9)
+  let (i10, _) = @duplix.input(10)
+  let (i11, _) = @duplix.input(11)
+  let (i12, _) = @duplix.input(12)
+  let n1 = i1
+  let n2 = i2
+  let n3 = i3
+  let n4 = i4
+  let n5 = i5
+  let n6 = i6
+  let n7 = i7
+  let n8 = i8
+  let n9 = i9
+  let n10 = i10
+  let n11 = i11
+  let n12 = i12
   let live = n1.map(x => x)
   ignore(live.read())
   let rss_before = current_rss_kb()
@@ -372,11 +374,11 @@ fn run_map12(n : Int) -> Unit {
   )
   let rss_after_build = current_rss_kb()
   let (first_dirty_us, first_result) = timed_us(() => {
-    i1.set(10)
+    set_i1(10)
     live.read()
   })
   checksum += first_result
-  let (steady_total_us, steady_checksum) = measure_steady(i1, live, 1000)
+  let (steady_total_us, steady_checksum) = measure_steady(set_i1, live, 1000)
   checksum += steady_checksum
   print_row(
     "map12", n, 1, 12, rss_before, rss_after_build, first_dirty_us, steady_total_us,
@@ -387,30 +389,30 @@ fn run_map12(n : Int) -> Unit {
 ///|
 fn run_zip12(n : Int) -> Unit {
   release_unused_memory()
-  let i1 = @duplix.input(1)
-  let i2 = @duplix.input(2)
-  let i3 = @duplix.input(3)
-  let i4 = @duplix.input(4)
-  let i5 = @duplix.input(5)
-  let i6 = @duplix.input(6)
-  let i7 = @duplix.input(7)
-  let i8 = @duplix.input(8)
-  let i9 = @duplix.input(9)
-  let i10 = @duplix.input(10)
-  let i11 = @duplix.input(11)
-  let i12 = @duplix.input(12)
-  let n1 = i1.to_node()
-  let n2 = i2.to_node()
-  let n3 = i3.to_node()
-  let n4 = i4.to_node()
-  let n5 = i5.to_node()
-  let n6 = i6.to_node()
-  let n7 = i7.to_node()
-  let n8 = i8.to_node()
-  let n9 = i9.to_node()
-  let n10 = i10.to_node()
-  let n11 = i11.to_node()
-  let n12 = i12.to_node()
+  let (i1, set_i1) = @duplix.input(1)
+  let (i2, _) = @duplix.input(2)
+  let (i3, _) = @duplix.input(3)
+  let (i4, _) = @duplix.input(4)
+  let (i5, _) = @duplix.input(5)
+  let (i6, _) = @duplix.input(6)
+  let (i7, _) = @duplix.input(7)
+  let (i8, _) = @duplix.input(8)
+  let (i9, _) = @duplix.input(9)
+  let (i10, _) = @duplix.input(10)
+  let (i11, _) = @duplix.input(11)
+  let (i12, _) = @duplix.input(12)
+  let n1 = i1
+  let n2 = i2
+  let n3 = i3
+  let n4 = i4
+  let n5 = i5
+  let n6 = i6
+  let n7 = i7
+  let n8 = i8
+  let n9 = i9
+  let n10 = i10
+  let n11 = i11
+  let n12 = i12
   let live = n1.map(x => x)
   ignore(live.read())
   let rss_before = current_rss_kb()
@@ -419,11 +421,11 @@ fn run_zip12(n : Int) -> Unit {
   )
   let rss_after_build = current_rss_kb()
   let (first_dirty_us, first_result) = timed_us(() => {
-    i1.set(10)
+    set_i1(10)
     live.read()
   })
   checksum += first_result
-  let (steady_total_us, steady_checksum) = measure_steady(i1, live, 1000)
+  let (steady_total_us, steady_checksum) = measure_steady(set_i1, live, 1000)
   checksum += steady_checksum
   print_row(
     "zip12", n, 2, 12, rss_before, rss_after_build, first_dirty_us, steady_total_us,
@@ -438,8 +440,8 @@ fn run_baseline_ephemeral(n : Int) -> Unit {
   let (build_us, checksum) = timed_us(() => {
     let mut checksum = 0
     for i in 0..<n {
-      let root = @duplix.input(i)
-      let derived = root.to_node().map(x => x + 1)
+      let (root, _) = @duplix.input(i)
+      let derived = root.map(x => x + 1)
       checksum += derived.read()
     }
     checksum
@@ -454,8 +456,8 @@ fn run_baseline_ephemeral(n : Int) -> Unit {
 ///|
 fn run_interleaved_map(batch_size : Int, batches : Int) -> Unit {
   release_unused_memory()
-  let root = @duplix.input(1)
-  let root_node = root.to_node()
+  let (root, set_root) = @duplix.input(1)
+  let root_node = root
   let live = root_node.map(x => x)
   ignore(live.read())
   let rss_before = current_rss_kb()
@@ -463,7 +465,7 @@ fn run_interleaved_map(batch_size : Int, batches : Int) -> Unit {
     let mut checksum = 0
     for batch in 0..<batches {
       checksum += create_dead_map_fanout(root_node, batch_size)
-      root.set(batch + 1)
+      set_root(batch + 1)
       checksum += live.read()
     }
     checksum

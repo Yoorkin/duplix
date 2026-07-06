@@ -105,17 +105,21 @@ pub impl Compare for DirtyFlag with fn compare(a, b) {
 }
 
 ///|
-struct Input[T](Node[T])
-
-///|
-pub fn[T] input(x : T) -> Input[T] {
-  {
+pub fn[T : Eq] input(x : T) -> (Node[T], (T) -> Unit) {
+  let node = {
     id: get_uuid(),
     value: None,
     compute: () => x,
     childs: [],
     dirty_flag: { dirty: true, parents: [], id: get_uuid() },
   }
+
+  fn write(x : T) {
+    node.compute = () => x
+    push_dirty(node)
+  }
+
+  (node, write)
 }
 
 ///|
@@ -181,17 +185,6 @@ pub fn[A : Eq, B : Eq] Node::bind(a : Node[A], f : (A) -> Node[B]) -> Node[B] {
 pub fn[A : Eq] Node::read(a : Node[A]) -> A {
   pull_value(a)
   a.value.unwrap()
-}
-
-///|
-pub fn[T : Eq] Input::set(input : Input[T], x : T) -> Unit {
-  input.0.compute = () => x
-  push_dirty(input.0)
-}
-
-///|
-pub fn[T] Input::to_node(input : Input[T]) -> Node[T] {
-  input.0
 }
 
 ///|
