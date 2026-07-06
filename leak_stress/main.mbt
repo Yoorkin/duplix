@@ -6,6 +6,20 @@ fn assert_int_eq(label : String, actual : Int, expected : Int) -> Unit raise {
 }
 
 ///|
+enum StressRoute {
+  StressHome
+  StressDetail
+} derive(Eq)
+
+///|
+impl @duplix.Enumerate for StressRoute with fn tag(self) {
+  match self {
+    StressHome => "home"
+    StressDetail => "detail"
+  }
+}
+
+///|
 fn stress_branch_flip(offset : Int) -> Unit raise {
   let (selector, set_selector) = @duplix.input(true)
   let (left, set_left) = @duplix.input(offset)
@@ -170,6 +184,153 @@ fn stress_wide_map_zip(offset : Int) -> Unit raise {
 }
 
 ///|
+fn stress_assoc(offset : Int) -> Unit raise {
+  let (source, set_source) = @duplix.input(
+    Map([(1, offset + 10), (2, offset + 20)]),
+  )
+  let mut build_runs = 0
+  let mut compute_runs = 0
+  let mut output_runs = 0
+  let assoc = source.assoc((k, value) => {
+    build_runs += 1
+    value.map(v => {
+      compute_runs += 1
+      k + v * 10
+    })
+  })
+  let total = assoc.map(xs => {
+    output_runs += 1
+    let mut sum = 0
+    for x in xs {
+      sum += x
+    }
+    sum
+  })
+
+  assert_int_eq("assoc initial", total.read(), 20 * offset + 303)
+  assert_int_eq("assoc builds initial", build_runs, 2)
+  assert_int_eq("assoc computes initial", compute_runs, 2)
+  assert_int_eq("assoc outputs initial", output_runs, 1)
+
+  set_source(Map([(1, offset + 11), (2, offset + 20)]))
+  assert_int_eq("assoc update one key", total.read(), 20 * offset + 313)
+  assert_int_eq("assoc builds update one key", build_runs, 2)
+  assert_int_eq("assoc computes update one key", compute_runs, 3)
+  assert_int_eq("assoc outputs update one key", output_runs, 2)
+
+  set_source(Map([(1, offset + 11)]))
+  assert_int_eq("assoc remove key", total.read(), 10 * offset + 111)
+  assert_int_eq("assoc builds remove key", build_runs, 2)
+  assert_int_eq("assoc computes remove key", compute_runs, 3)
+  assert_int_eq("assoc outputs remove key", output_runs, 3)
+
+  set_source(Map([(1, offset + 11), (3, offset + 30)]))
+  assert_int_eq("assoc add key", total.read(), 20 * offset + 414)
+  assert_int_eq("assoc builds add key", build_runs, 3)
+  assert_int_eq("assoc computes add key", compute_runs, 4)
+  assert_int_eq("assoc outputs add key", output_runs, 4)
+
+  set_source(Map([(1, offset + 11), (3, offset + 30)]))
+  assert_int_eq("assoc same map", total.read(), 20 * offset + 414)
+  assert_int_eq("assoc builds same map", build_runs, 3)
+  assert_int_eq("assoc computes same map", compute_runs, 4)
+  assert_int_eq("assoc outputs same map", output_runs, 4)
+
+  set_source(Map([(2, offset + 25), (3, offset + 30)]))
+  assert_int_eq("assoc replace key", total.read(), 20 * offset + 555)
+  assert_int_eq("assoc builds replace key", build_runs, 4)
+  assert_int_eq("assoc computes replace key", compute_runs, 5)
+  assert_int_eq("assoc outputs replace key", output_runs, 5)
+}
+
+///|
+fn stress_enumerate(offset : Int) -> Unit raise {
+  let (route, set_route) = @duplix.input(StressHome)
+  let mut home_state : ((Int) -> Unit)? = None
+  let mut detail_state : ((Int) -> Unit)? = None
+  let mut build_runs = 0
+  let mut home_runs = 0
+  let mut detail_runs = 0
+  let mut output_runs = 0
+  let selected = route.enumerate(route => {
+    build_runs += 1
+    match route {
+      StressHome => {
+        let (state, set_state) = @duplix.input(offset + 1)
+        home_state = Some(set_state)
+        state.map(x => {
+          home_runs += 1
+          x + 100
+        })
+      }
+      StressDetail => {
+        let (state, set_state) = @duplix.input(offset + 10)
+        detail_state = Some(set_state)
+        state.map(x => {
+          detail_runs += 1
+          x + 1000
+        })
+      }
+    }
+  })
+  let output = selected.map(x => {
+    output_runs += 1
+    x * 2
+  })
+
+  assert_int_eq("enumerate initial", output.read(), 2 * offset + 202)
+  assert_int_eq("enumerate builds initial", build_runs, 1)
+  assert_int_eq("enumerate home initial", home_runs, 1)
+  assert_int_eq("enumerate detail initial", detail_runs, 0)
+  assert_int_eq("enumerate outputs initial", output_runs, 1)
+
+  guard home_state is Some(set_home_state) else {
+    fail("expected cached home state")
+  }
+  set_home_state(offset + 2)
+  assert_int_eq("enumerate home update", output.read(), 2 * offset + 204)
+  assert_int_eq("enumerate builds home update", build_runs, 1)
+  assert_int_eq("enumerate home update runs", home_runs, 2)
+  assert_int_eq("enumerate detail update runs", detail_runs, 0)
+  assert_int_eq("enumerate output home update", output_runs, 2)
+
+  set_route(StressDetail)
+  assert_int_eq("enumerate detail switch", output.read(), 2 * offset + 2020)
+  assert_int_eq("enumerate builds detail switch", build_runs, 2)
+  assert_int_eq("enumerate home detail switch", home_runs, 2)
+  assert_int_eq("enumerate detail detail switch", detail_runs, 1)
+  assert_int_eq("enumerate output detail switch", output_runs, 3)
+
+  set_home_state(offset + 3)
+  assert_int_eq(
+    "enumerate inactive home update",
+    output.read(),
+    2 * offset + 2020,
+  )
+  assert_int_eq("enumerate builds inactive home update", build_runs, 2)
+  assert_int_eq("enumerate home inactive update", home_runs, 2)
+  assert_int_eq("enumerate detail inactive update", detail_runs, 1)
+  assert_int_eq("enumerate output inactive update", output_runs, 3)
+
+  guard detail_state is Some(set_detail_state) else {
+    fail("expected cached detail state")
+  }
+  set_detail_state(offset + 20)
+  assert_int_eq("enumerate detail update", output.read(), 2 * offset + 2040)
+  assert_int_eq("enumerate builds detail update", build_runs, 2)
+  assert_int_eq("enumerate home detail update", home_runs, 2)
+  assert_int_eq("enumerate detail update runs", detail_runs, 2)
+  assert_int_eq("enumerate output detail update", output_runs, 4)
+
+  set_route(StressHome)
+  assert_int_eq("enumerate home switch back", output.read(), 2 * offset + 206)
+  assert_int_eq("enumerate builds home switch back", build_runs, 2)
+  assert_int_eq("enumerate home switch back runs", home_runs, 3)
+  assert_int_eq("enumerate detail switch back runs", detail_runs, 2)
+  assert_int_eq("enumerate output home switch back", output_runs, 5)
+}
+
+///|
 fn main raise {
   for i in 0..<80 {
     let offset = i * 10000
@@ -177,6 +338,8 @@ fn main raise {
     stress_shared_diamond(offset)
     stress_cutoff_clean_reads(offset)
     stress_wide_map_zip(offset)
+    stress_assoc(offset)
+    stress_enumerate(offset)
     stress_branch_flip(offset)
   }
 }

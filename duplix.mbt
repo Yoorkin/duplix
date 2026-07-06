@@ -182,6 +182,106 @@ pub fn[A : Eq, B : Eq] Node::bind(a : Node[A], f : (A) -> Node[B]) -> Node[B] {
 }
 
 ///|
+pub(open) trait Enumerate {
+  fn tag(Self) -> String
+}
+
+///|
+pub fn[E : Enumerate + Eq, A : Eq] Node::enumerate(
+  map : Node[E],
+  f : (E) -> Node[A],
+) -> Node[A] {
+  let cache : Map[String, Node[A]] = Map([])
+  map.bind(value => {
+    let tag = value.tag()
+    if cache.get(tag) is Some(node) {
+      node
+    } else {
+      let node = f(value)
+      cache.set(tag, node)
+      node
+    }
+  })
+}
+
+///|
+priv struct AssocEntry[V, C] {
+  mut value : V
+  set_value : (V) -> Unit
+  result : Node[C]
+  mut epoch : Int
+}
+
+///|
+///             node(dict) ---+
+///                           |
+/// node(v1) --?-> node(c1) --+
+///                           |---> node(array(c))
+/// node(v2) --?-> node(c2) --+
+///   ...                     |
+/// node(vN) --?-> node(cN) --+
+pub fn[K : Hash + Eq, V : Eq, C : Eq] Node::assoc(
+  a : Node[Map[K, V]],
+  f : (K, Node[V]) -> Node[C],
+) -> Node[Array[C]] {
+  let mut epoch = 0
+  let cache : Map[K, AssocEntry[V, C]] = Map([])
+  let output_childs : Array[&ErasedNode] = [a]
+  let output_dirty_flag = { dirty: true, parents: [], id: get_uuid() }
+  fn compute() {
+    epoch += 1
+    let active_results : Array[Node[C]] = []
+    let dict = a.value.unwrap()
+    for key, value in dict {
+      let entry = if cache.get(key) is Some(entry) {
+        if entry.value != value {
+          entry.value = value
+          (entry.set_value)(value)
+        }
+        entry.epoch = epoch
+        entry
+      } else {
+        let (value_node, set_value) = input(value)
+        let result = f(key, value_node)
+        let entry = { value, set_value, result, epoch }
+        cache.set(key, entry)
+        entry
+      }
+      active_results.push(entry.result)
+    }
+
+    let stale_keys : Array[K] = []
+    for key, entry in cache {
+      if entry.epoch != epoch {
+        stale_keys.push(key)
+      }
+    }
+    for key in stale_keys {
+      if cache.get(key) is Some(entry) {
+        if entry.result.dirty_flag.parents.search(output_dirty_flag) is Some(i) {
+          ignore(entry.result.dirty_flag.parents.remove(i))
+        }
+      }
+      cache.remove(key)
+    }
+
+    output_childs.clear()
+    output_childs.push(a)
+    let output : Array[C] = []
+    for result in active_results {
+      output_childs.push(result)
+      if result.dirty_flag.parents.all(x => x.id != output_dirty_flag.id) {
+        result.dirty_flag.parents.push(output_dirty_flag)
+      }
+      output.push(result.read())
+    }
+    output
+  }
+
+  { id: get_uuid(), value: None, compute, childs: output_childs, dirty_flag: output_dirty_flag }
+}
+
+///|
 pub fn[A : Eq] Node::read(a : Node[A]) -> A {
   pull_value(a)
   a.value.unwrap()

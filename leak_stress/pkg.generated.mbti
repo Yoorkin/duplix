@@ -6,6 +6,7 @@ package "Yoorkin/duplix/leak_stress"
 // Errors
 
 // Types and methods
+type StressRoute derive(Eq)
 
 // Type aliases
 

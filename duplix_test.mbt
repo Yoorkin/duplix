@@ -206,6 +206,263 @@ test "map2 recomputes when one parent changes" {
 }
 
 ///|
+test "assoc reuses keyed child graphs" {
+  let (dict, set_dict) = @duplix.input(Map([(1, 10), (2, 20)]))
+  let mut created = 0
+  let mut runs = 0
+  let values = dict.assoc((key, value) => {
+    created = created + 1
+    value.map(v => {
+      runs = runs + 1
+      key * 100 + v
+    })
+  })
+
+  debug_inspect(values.read(), content="[110, 220]")
+  inspect(created, content="2")
+  inspect(runs, content="2")
+
+  set_dict(Map([(1, 10), (2, 21)]))
+  debug_inspect(values.read(), content="[110, 221]")
+  inspect(created, content="2")
+  inspect(runs, content="3")
+
+  set_dict(Map([(2, 21), (3, 30)]))
+  debug_inspect(values.read(), content="[221, 330]")
+  inspect(created, content="3")
+  inspect(runs, content="4")
+
+  set_dict(Map([(3, 30)]))
+  debug_inspect(values.read(), content="[330]")
+  inspect(created, content="3")
+  inspect(runs, content="4")
+
+  set_dict(Map([(1, 11), (3, 30)]))
+  debug_inspect(values.read(), content="[111, 330]")
+  inspect(created, content="4")
+  inspect(runs, content="5")
+}
+
+///|
+test "assoc reuses entries and aggregates active results" {
+  let (source, set_source) = @duplix.input(Map([(1, 10), (2, 20)]))
+  let mut build_runs = 0
+  let mut compute_runs = 0
+  let mut output_runs = 0
+  let assoc = source.assoc((k, value) => {
+    build_runs = build_runs + 1
+    value.map1(v => {
+      compute_runs = compute_runs + 1
+      k + v * 10
+    })
+  })
+  let total = assoc.map1(xs => {
+    output_runs = output_runs + 1
+    let mut sum = 0
+    for x in xs {
+      sum = sum + x
+    }
+    sum
+  })
+
+  inspect(total.read(), content="303")
+  inspect(build_runs, content="2")
+  inspect(compute_runs, content="2")
+  inspect(output_runs, content="1")
+
+  set_source(Map([(1, 11), (2, 20)]))
+  inspect(total.read(), content="313")
+  inspect(build_runs, content="2")
+  inspect(compute_runs, content="3")
+  inspect(output_runs, content="2")
+
+  set_source(Map([(1, 11)]))
+  inspect(total.read(), content="111")
+  inspect(build_runs, content="2")
+  inspect(compute_runs, content="3")
+  inspect(output_runs, content="3")
+
+  set_source(Map([(1, 11), (3, 30)]))
+  inspect(total.read(), content="414")
+  inspect(build_runs, content="3")
+  inspect(compute_runs, content="4")
+  inspect(output_runs, content="4")
+
+  set_source(Map([(1, 11), (3, 30)]))
+  inspect(total.read(), content="414")
+  inspect(build_runs, content="3")
+  inspect(compute_runs, content="4")
+  inspect(output_runs, content="4")
+
+  set_source(Map([(2, 25), (3, 30)]))
+  inspect(total.read(), content="555")
+  inspect(build_runs, content="4")
+  inspect(compute_runs, content="5")
+  inspect(output_runs, content="5")
+}
+
+///|
+enum Route {
+  Home
+  Detail
+} derive(Eq)
+
+///|
+impl @duplix.Enumerate for Route with fn tag(self) {
+  match self {
+    Home => "home"
+    Detail => "detail"
+  }
+}
+
+///|
+test "enumerate caches branches and switches by tag" {
+  let (route, set_route) = @duplix.input(Home)
+  let (home_input, set_home_input) = @duplix.input(1)
+  let (detail_input, _) = @duplix.input(10)
+  let mut build_runs = 0
+  let mut home_runs = 0
+  let mut detail_runs = 0
+  let mut output_runs = 0
+  let selected = route.enumerate(route => {
+    build_runs = build_runs + 1
+    match route {
+      Home =>
+        home_input.map1(x => {
+          home_runs = home_runs + 1
+          x + 100
+        })
+      Detail =>
+        detail_input.map1(x => {
+          detail_runs = detail_runs + 1
+          x + 1000
+        })
+    }
+  })
+  let output = selected.map1(x => {
+    output_runs = output_runs + 1
+    x * 2
+  })
+
+  inspect(output.read(), content="202")
+  inspect(build_runs, content="1")
+  inspect(home_runs, content="1")
+  inspect(detail_runs, content="0")
+  inspect(output_runs, content="1")
+
+  set_home_input(2)
+  inspect(output.read(), content="204")
+  inspect(build_runs, content="1")
+  inspect(home_runs, content="2")
+  inspect(detail_runs, content="0")
+  inspect(output_runs, content="2")
+
+  set_route(Detail)
+  inspect(output.read(), content="2020")
+  inspect(build_runs, content="2")
+  inspect(home_runs, content="2")
+  inspect(detail_runs, content="1")
+  inspect(output_runs, content="3")
+
+  set_home_input(3)
+  inspect(output.read(), content="2020")
+  inspect(build_runs, content="2")
+  inspect(home_runs, content="2")
+  inspect(detail_runs, content="1")
+  inspect(output_runs, content="3")
+
+  set_route(Home)
+  inspect(output.read(), content="206")
+  inspect(build_runs, content="2")
+  inspect(home_runs, content="3")
+  inspect(detail_runs, content="1")
+  inspect(output_runs, content="4")
+}
+
+///|
+test "enumerate preserves state created inside cached page branches" {
+  let (route, set_route) = @duplix.input(Home)
+  let mut home_state : ((Int) -> Unit)? = None
+  let mut detail_state : ((Int) -> Unit)? = None
+  let mut build_runs = 0
+  let mut home_runs = 0
+  let mut detail_runs = 0
+  let mut output_runs = 0
+  let selected = route.enumerate(route => {
+    build_runs = build_runs + 1
+    match route {
+      Home => {
+        let (state, set_state) = @duplix.input(1)
+        home_state = Some(set_state)
+        state.map1(x => {
+          home_runs = home_runs + 1
+          x + 100
+        })
+      }
+      Detail => {
+        let (state, set_state) = @duplix.input(10)
+        detail_state = Some(set_state)
+        state.map1(x => {
+          detail_runs = detail_runs + 1
+          x + 1000
+        })
+      }
+    }
+  })
+  let output = selected.map1(x => {
+    output_runs = output_runs + 1
+    x * 2
+  })
+
+  inspect(output.read(), content="202")
+  inspect(build_runs, content="1")
+  inspect(home_runs, content="1")
+  inspect(detail_runs, content="0")
+  inspect(output_runs, content="1")
+
+  guard home_state is Some(set_home_state) else {
+    fail("expected cached home state")
+  }
+  set_home_state(2)
+  inspect(output.read(), content="204")
+  inspect(build_runs, content="1")
+  inspect(home_runs, content="2")
+  inspect(detail_runs, content="0")
+  inspect(output_runs, content="2")
+
+  set_route(Detail)
+  inspect(output.read(), content="2020")
+  inspect(build_runs, content="2")
+  inspect(home_runs, content="2")
+  inspect(detail_runs, content="1")
+  inspect(output_runs, content="3")
+
+  set_home_state(3)
+  inspect(output.read(), content="2020")
+  inspect(build_runs, content="2")
+  inspect(home_runs, content="2")
+  inspect(detail_runs, content="1")
+  inspect(output_runs, content="3")
+
+  guard detail_state is Some(set_detail_state) else {
+    fail("expected cached detail state")
+  }
+  set_detail_state(20)
+  inspect(output.read(), content="2040")
+  inspect(build_runs, content="2")
+  inspect(home_runs, content="2")
+  inspect(detail_runs, content="2")
+  inspect(output_runs, content="4")
+
+  set_route(Home)
+  inspect(output.read(), content="206")
+  inspect(build_runs, content="2")
+  inspect(home_runs, content="3")
+  inspect(detail_runs, content="2")
+  inspect(output_runs, content="5")
+}
+
+///|
 test "map12 wrapper" {
   let (x1, _) = @duplix.input(1)
   let (x2, _) = @duplix.input(2)

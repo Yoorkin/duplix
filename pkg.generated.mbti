@@ -12,7 +12,9 @@ pub impl Compare for DirtyFlag
 pub impl Eq for DirtyFlag
 
 type Node[T]
+pub fn[K : Hash + Eq, V : Eq, C : Eq] Node::assoc(Self[Map[K, V]], (K, Self[V]) -> Self[C]) -> Self[Array[C]]
 pub fn[A : Eq, B : Eq] Node::bind(Self[A], (A) -> Self[B]) -> Self[B]
+pub fn[E : Enumerate + Eq, A : Eq] Node::enumerate(Self[E], (E) -> Self[A]) -> Self[A]
 pub fn[A : Eq, B] Node::map(Self[A], (A) -> B) -> Self[B]
 pub fn[A : Eq, B] Node::map1(Self[A], (A) -> B) -> Self[B]
 pub fn[A : Eq, B : Eq, C : Eq, D : Eq, E : Eq, F : Eq, G : Eq, H : Eq, I : Eq, J : Eq, K] Node::map10(Self[A], Self[B], Self[C], Self[D], Self[E], Self[F], Self[G], Self[H], Self[I], Self[J], (A, B, C, D, E, F, G, H, I, J) -> K) -> Self[K]
@@ -44,4 +46,7 @@ pub impl[T] Eq for Node[T]
 // Type aliases
 
 // Traits
+pub(open) trait Enumerate {
+  fn tag(Self) -> String
+}
 
