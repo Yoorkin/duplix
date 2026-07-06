@@ -278,7 +278,13 @@ pub fn[K : Hash + Eq, V : Eq, C : Eq] Node::assoc(
     output
   }
 
-  { id: get_uuid(), value: None, compute, childs: output_childs, dirty_flag: output_dirty_flag }
+  {
+    id: get_uuid(),
+    value: None,
+    compute,
+    childs: output_childs,
+    dirty_flag: output_dirty_flag,
+  }
 }
 
 ///|

@@ -11,16 +11,16 @@
 
 name = "Yoorkin/duplix"
 
-version = "0.2.1"
+version = "0.2.2"
 
 readme = "README.mbt.md"
 
-repository = ""
+repository = "https://github.com/Yoorkin/duplix"
 
 license = "Apache-2.0"
 
-keywords = [ ]
+keywords = [ "reactive", "signals", "incremental", "memoization", "RC" ]
 
 preferred_target = "native"
 
-description = ""
+description = "An RC-friendly reactive graph with lazy computation and bounded retention."
