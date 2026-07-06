@@ -73,6 +73,87 @@ fn has_dirty_parent(child : DirtyFlag, parent : DirtyFlag) -> Bool {
 }
 
 ///|
+fn dirty_parent_count(child : DirtyFlag, parent : DirtyFlag) -> Int {
+  let mut count = 0
+  for candidate in child.parents {
+    if candidate.id == parent.id {
+      count += 1
+    }
+  }
+  count
+}
+
+///|
+fn[A] child_count(parent : Node[A], child_id : Int) -> Int {
+  let mut count = 0
+  for child in parent.childs {
+    if child.get_id() == child_id {
+      count += 1
+    }
+  }
+  count
+}
+
+///|
+test "bind selector branch should not duplicate selector dependency" {
+  let (selector, _) = input(1)
+  let (fallback, _) = input(10)
+  let parent = selector.bind(value => {
+    if value == 1 {
+      selector
+    } else {
+      fallback
+    }
+  })
+
+  inspect(parent.read(), content="1")
+  debug_inspect(
+    [
+      dirty_parent_count(selector.dirty_flag, parent.dirty_flag),
+      child_count(parent, selector.id),
+    ],
+    content="[1, 1]",
+  )
+}
+
+///|
+test "bind selector branch can switch away and back" {
+  let (selector, set_selector) = input(1)
+  let (fallback, set_fallback) = input(10)
+  let parent = selector.bind(value => {
+    if value == 1 {
+      selector
+    } else {
+      fallback
+    }
+  })
+
+  inspect(parent.read(), content="1")
+  inspect(child_count(parent, selector.id), content="1")
+
+  set_selector(2)
+  inspect(parent.read(), content="10")
+  assert_true(has_dirty_parent(fallback.dirty_flag, parent.dirty_flag))
+  inspect(child_count(parent, selector.id), content="1")
+  inspect(child_count(parent, fallback.id), content="1")
+
+  set_selector(1)
+  inspect(parent.read(), content="1")
+  assert_true(!has_dirty_parent(fallback.dirty_flag, parent.dirty_flag))
+  inspect(child_count(parent, selector.id), content="1")
+  inspect(child_count(parent, fallback.id), content="0")
+
+  set_selector(2)
+  inspect(parent.read(), content="10")
+  assert_true(has_dirty_parent(fallback.dirty_flag, parent.dirty_flag))
+  set_fallback(11)
+  inspect(parent.read(), content="11")
+  assert_true(has_dirty_parent(fallback.dirty_flag, parent.dirty_flag))
+  set_fallback(12)
+  inspect(parent.read(), content="12")
+}
+
+///|
 test "scope dispose detaches dirty edge from owned mapped node" {
   let (root, _) = input(1)
   let derived = root.map(x => x + 1)

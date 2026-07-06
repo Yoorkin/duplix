@@ -145,23 +145,26 @@ pub fn[A : Eq, B : Eq] Node::bind(a : Node[A], f : (A) -> Node[B]) -> Node[B] {
   let output_dirty_flag = { dirty: true, parents: [], id: get_uuid() }
   fn compute() {
     let b2 = f(a.value.unwrap())
+    let branch_changed = b1_dirty_sub is None ||
+      (b1_dirty_sub is Some(prev) && prev.id != b2.dirty_flag().id)
 
-    // delete: b1 ---derived---> output
-    // add:    b2 ---derived---> output
-    if b1_dirty_sub is Some(b1) && b1.id != a.dirty_flag().id {
-      if b1.parents.search(output_dirty_flag) is Some(i) {
-        ignore(b1.parents.remove(i))
+    if branch_changed {
+      // delete: b1 ---derived---> output
+      // add:    b2 ---derived---> output
+      if b1_dirty_sub is Some(b1) && b1.id != a.dirty_flag().id {
+        if b1.parents.search(output_dirty_flag) is Some(i) {
+          ignore(b1.parents.remove(i))
+        }
+        if output_childs.search_by(x => x.dirty_flag().id == b1.id) is Some(i) {
+          ignore(output_childs.remove(i))
+        }
       }
-      if output_childs.search_by(x => x.dirty_flag().id == b1.id) is Some(i) {
-        ignore(output_childs.remove(i))
-      }
-    }
 
-    if b1_dirty_sub is None ||
-      (b1_dirty_sub is Some(prev) && prev.id != b2.dirty_flag().id) {
-      b2.dirty_flag.parents.push(output_dirty_flag)
-      output_childs.push(b2)
-      b1_dirty_sub = Some(b2.dirty_flag)
+      if b2.dirty_flag().id != a.dirty_flag().id {
+        b2.dirty_flag().parents.push(output_dirty_flag)
+        output_childs.push(b2)
+      }
+      b1_dirty_sub = Some(b2.dirty_flag())
     }
 
     b2.read()
