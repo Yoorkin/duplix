@@ -2,6 +2,9 @@
 let uuid : Ref[Int] = Ref(0)
 
 ///|
+let clock : Ref[Double] = Ref(0)
+
+///|
 fn get_uuid() -> Int {
   uuid.val += 1
   uuid.val
@@ -16,8 +19,9 @@ fn get_uuid() -> Int {
 priv trait ErasedNode {
   fn get_id(Self) -> Int
   fn childs(Self) -> Array[&ErasedNode]
+  fn changed_at(Self) -> Double
   fn dirty_flag(Self) -> DirtyFlag
-  fn recompute(Self, Set[Int]) -> Unit
+  fn recompute(Self) -> Unit
 }
 
 ///|
@@ -33,6 +37,11 @@ struct Node[T] {
   id : Int
   mut value : T?
   mut compute : () -> T
+  // Logical clock stamps. Double can represent every integer up to 2^53 - 1
+  // exactly. At 60fps, even 100,000 reads per frame would take about 47 years
+  // to exhaust that range, so wraparound is not a practical concern here.
+  mut changed_at : Double
+  mut recomputed_at : Double
   childs : Array[&ErasedNode]
   dirty_flag : DirtyFlag
 }
@@ -53,6 +62,11 @@ impl[T : Eq] ErasedNode for Node[T] with fn get_id(self) {
 }
 
 ///|
+impl[T : Eq] ErasedNode for Node[T] with fn changed_at(self) {
+  self.changed_at
+}
+
+///|
 impl[T : Eq] ErasedNode for Node[T] with fn childs(self) {
   self.childs
 }
@@ -63,19 +77,22 @@ impl[T : Eq] ErasedNode for Node[T] with fn dirty_flag(self) {
 }
 
 ///|
-impl[T : Eq] ErasedNode for Node[T] with fn recompute(self, changed) {
+impl[T : Eq] ErasedNode for Node[T] with fn recompute(self) {
   match self.value {
     None => {
       let new = (self.compute)()
       self.value = Some(new)
-      changed.add(self.id)
+      self.recomputed_at = clock.val
+      self.changed_at = self.recomputed_at
       self.dirty_flag().dirty = false
     }
     Some(old) if self.dirty_flag().dirty => {
-      if self.childs is [] || self.childs.any(x => changed.contains(x.get_id())) {
+      if self.childs is [] ||
+        self.childs.any(x => x.changed_at() > self.recomputed_at) {
         let new = (self.compute)()
+        self.recomputed_at = clock.val
         if !Eq::equal(old, new) {
-          changed.add(self.id)
+          self.changed_at = self.recomputed_at
         }
         self.value = Some(new)
       }
@@ -109,6 +126,8 @@ pub fn[T : Eq] input(x : T) -> (Node[T], (T) -> Unit) {
     id: get_uuid(),
     value: None,
     compute: () => x,
+    changed_at: 0,
+    recomputed_at: 0,
     childs: [],
     dirty_flag: { dirty: true, parents: [], id: get_uuid() },
   }
@@ -130,6 +149,8 @@ pub fn[A : Eq, B] Node::map(a : Node[A], f : (A) -> B) -> Node[B] {
     id: get_uuid(),
     value: None,
     compute: () => f(a.value.unwrap()),
+    changed_at: 0,
+    recomputed_at: 0,
     childs: [a],
     dirty_flag: dirty_b,
   }
@@ -167,7 +188,7 @@ pub fn[A : Eq, B : Eq] Node::bind(a : Node[A], f : (A) -> Node[B]) -> Node[B] {
       b1_dirty_sub = Some(b2.dirty_flag())
     }
 
-    b2.read()
+    b2.internal_read()
   }
 
   // a ---derived--->output
@@ -178,6 +199,8 @@ pub fn[A : Eq, B : Eq] Node::bind(a : Node[A], f : (A) -> Node[B]) -> Node[B] {
     id: get_uuid(),
     value: None,
     compute,
+    changed_at: 0,
+    recomputed_at: 0,
     childs: output_childs,
     dirty_flag: output_dirty_flag,
   }
@@ -275,7 +298,7 @@ pub fn[K : Hash + Eq, V : Eq, C : Eq] Node::assoc(
       if result.dirty_flag.parents.all(x => x.id != output_dirty_flag.id) {
         result.dirty_flag.parents.push(output_dirty_flag)
       }
-      output.push(result.read())
+      output.push(result.internal_read())
     }
     output
   }
@@ -284,15 +307,23 @@ pub fn[K : Hash + Eq, V : Eq, C : Eq] Node::assoc(
     id: get_uuid(),
     value: None,
     compute,
+    recomputed_at: 0,
+    changed_at: 0,
     childs: output_childs,
     dirty_flag: output_dirty_flag,
   }
 }
 
 ///|
-pub fn[A : Eq] Node::read(a : Node[A]) -> A {
+fn[A : Eq] Node::internal_read(a : Node[A]) -> A {
   pull_value(a)
   a.value.unwrap()
+}
+
+///|
+pub fn[A : Eq] Node::read(a : Node[A]) -> A {
+  clock.val += 1
+  a.internal_read()
 }
 
 ///|
@@ -318,14 +349,13 @@ fn pull_value(node : &ErasedNode) -> Unit {
     }
   }
 
-  let changed_nodes = Set([])
   for node in recomputes {
     for child in node.childs() {
       if child.dirty_flag().parents.all(x => x.id != node.dirty_flag().id) {
         child.dirty_flag().parents.push(node.dirty_flag())
       }
     }
-    node.recompute(changed_nodes)
+    node.recompute()
   }
 }
 

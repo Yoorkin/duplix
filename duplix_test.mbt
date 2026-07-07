@@ -380,6 +380,87 @@ test "enumerate caches branches and switches by tag" {
 }
 
 ///|
+test "enumerate current branch stays subscribed across repeated child changes" {
+  let (route, _) = @duplix.input(Home)
+  let (home_input, set_home_input) = @duplix.input(1)
+  let (detail_input, _) = @duplix.input(10)
+  let mut build_runs = 0
+  let mut home_runs = 0
+  let mut detail_runs = 0
+  let selected = route.enumerate(route => {
+    build_runs = build_runs + 1
+    match route {
+      Home =>
+        home_input.map1(x => {
+          home_runs = home_runs + 1
+          x + 100
+        })
+      Detail =>
+        detail_input.map1(x => {
+          detail_runs = detail_runs + 1
+          x + 1000
+        })
+    }
+  })
+
+  inspect(selected.read(), content="101")
+  set_home_input(2)
+  inspect(selected.read(), content="102")
+  set_home_input(3)
+  inspect(selected.read(), content="103")
+  inspect(build_runs, content="1")
+  inspect(home_runs, content="3")
+  inspect(detail_runs, content="0")
+}
+
+///|
+test "enumerate cached inactive branch observes dependency changes consumed elsewhere" {
+  let (route, set_route) = @duplix.input(Detail)
+  let (source, set_source) = @duplix.input(0)
+  let mut build_runs = 0
+  let mut home_runs = 0
+  let mut detail_runs = 0
+  let selected = route.enumerate(route => {
+    build_runs = build_runs + 1
+    match route {
+      Home =>
+        source.map1(x => {
+          home_runs = home_runs + 1
+          x
+        })
+      Detail =>
+        source.map1(x => {
+          detail_runs = detail_runs + 1
+          x * 10
+        })
+    }
+  })
+
+  inspect(selected.read(), content="0")
+  inspect(build_runs, content="1")
+  inspect(home_runs, content="0")
+  inspect(detail_runs, content="1")
+
+  set_route(Home)
+  inspect(selected.read(), content="0")
+  inspect(build_runs, content="2")
+  inspect(home_runs, content="1")
+  inspect(detail_runs, content="1")
+
+  set_source(2)
+  inspect(selected.read(), content="2")
+  inspect(build_runs, content="2")
+  inspect(home_runs, content="2")
+  inspect(detail_runs, content="1")
+
+  set_route(Detail)
+  inspect(selected.read(), content="20")
+  inspect(build_runs, content="2")
+  inspect(home_runs, content="2")
+  inspect(detail_runs, content="2")
+}
+
+///|
 test "enumerate preserves state created inside cached page branches" {
   let (route, set_route) = @duplix.input(Home)
   let mut home_state : ((Int) -> Unit)? = None

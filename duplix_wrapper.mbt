@@ -4,7 +4,15 @@ fn[T] map_node(childs : Array[&ErasedNode], compute : () -> T) -> Node[T] {
   // for child in childs {
   //   child.dirty_flag().parents.push(dirty)
   // }
-  { id: get_uuid(), value: None, compute, childs, dirty_flag: dirty }
+  {
+    id: get_uuid(),
+    value: None,
+    compute,
+    childs,
+    dirty_flag: dirty,
+    changed_at: 0,
+    recomputed_at: 0,
+  }
 }
 
 ///|
