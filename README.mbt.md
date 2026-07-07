@@ -1,5 +1,7 @@
 # Duplix
 
+> **Note:** This module is experimental.
+
 Duplix is a reactive graph built from two paired strands: value dependencies and 
 dirty propagation.
 
@@ -50,7 +52,7 @@ state, where the edges can be rebuilt on demand by the next read.
 At no point does the value graph contain a reference cycle.
 
 
-# Scope & Disposer
+## Scope & Disposer
 
 ```
 +--> scope---------------------------------------+

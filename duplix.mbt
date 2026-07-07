@@ -212,6 +212,45 @@ pub(open) trait Enumerate {
 }
 
 ///|
+pub fn[E : Enumerate + Eq, A : Eq] Node::switch_with_disposer(
+  a : Node[E],
+  f : (E) -> (Node[A], Disposer),
+) -> Node[A] {
+  let mut active : (String, Node[A], () -> Unit)? = None
+  a.bind(value => {
+    let tag = value.tag()
+    fn update_active(value) {
+      let (node, disposer) = f(value)
+      active = Some((tag, node, disposer))
+      node
+    }
+    match active {
+      None => update_active(value)
+      Some((old_tag, node, disposer)) =>
+        if tag == old_tag {
+          node
+        } else {
+          disposer()
+          update_active(value)
+        }
+    }
+  })
+}
+
+///|
+fn noop() -> Unit {
+  ()
+}
+
+///|
+pub fn[E : Enumerate + Eq, A : Eq] Node::switch(
+  a : Node[E],
+  f : (E) -> Node[A],
+) -> Node[A] {
+  a.switch_with_disposer(e => (f(e), noop))
+}
+
+///|
 pub fn[E : Enumerate + Eq, A : Eq] Node::enumerate(
   map : Node[E],
   f : (E) -> Node[A],
@@ -234,20 +273,17 @@ priv struct AssocEntry[V, C] {
   mut value : V
   set_value : (V) -> Unit
   result : Node[C]
+  disposer : Disposer
   mut epoch : Int
 }
 
 ///|
-///             node(dict) ---+
-///                           |
-/// node(v1) --?-> node(c1) --+
-///                           |---> node(array(c))
-/// node(v2) --?-> node(c2) --+
-///   ...                     |
-/// node(vN) --?-> node(cN) --+
-pub fn[K : Hash + Eq, V : Eq, C : Eq] Node::assoc(
+type Disposer = () -> Unit
+
+///|
+pub fn[K : Hash + Eq, V : Eq, C : Eq] Node::assoc_with_disposer(
   a : Node[Map[K, V]],
-  f : (K, Node[V]) -> Node[C],
+  f : (K, Node[V]) -> (Node[C], Disposer),
 ) -> Node[Array[C]] {
   let mut epoch = 0
   let cache : Map[K, AssocEntry[V, C]] = Map([])
@@ -267,8 +303,8 @@ pub fn[K : Hash + Eq, V : Eq, C : Eq] Node::assoc(
         entry
       } else {
         let (value_node, set_value) = input(value)
-        let result = f(key, value_node)
-        let entry = { value, set_value, result, epoch }
+        let (result, disposer) = f(key, value_node)
+        let entry = { value, set_value, result, disposer, epoch }
         cache.set(key, entry)
         entry
       }
@@ -286,6 +322,7 @@ pub fn[K : Hash + Eq, V : Eq, C : Eq] Node::assoc(
         if entry.result.dirty_flag.parents.search(output_dirty_flag) is Some(i) {
           ignore(entry.result.dirty_flag.parents.remove(i))
         }
+        (entry.disposer)()
       }
       cache.remove(key)
     }
@@ -312,6 +349,21 @@ pub fn[K : Hash + Eq, V : Eq, C : Eq] Node::assoc(
     childs: output_childs,
     dirty_flag: output_dirty_flag,
   }
+}
+
+///|
+///             node(dict) ---+
+///                           |
+/// node(v1) --?-> node(c1) --+
+///                           |---> node(array(c))
+/// node(v2) --?-> node(c2) --+
+///   ...                     |
+/// node(vN) --?-> node(cN) --+
+pub fn[K : Hash + Eq, V : Eq, C : Eq] Node::assoc(
+  a : Node[Map[K, V]],
+  f : (K, Node[V]) -> Node[C],
+) -> Node[Array[C]] {
+  a.assoc_with_disposer((k, v) => (f(k, v), noop))
 }
 
 ///|

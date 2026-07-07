@@ -302,6 +302,43 @@ test "assoc reuses entries and aggregates active results" {
 }
 
 ///|
+test "assoc_with_disposer disposes removed entries" {
+  let (source, set_source) = @duplix.input(Map([(1, 10), (2, 20)]))
+  let mut build_runs = 0
+  let mut dispose_runs = 0
+  let values = source.assoc_with_disposer((key, value) => {
+    build_runs = build_runs + 1
+    let result = value.map1(v => key * 100 + v)
+    let dispose = () => dispose_runs = dispose_runs + 1
+    (result, dispose)
+  })
+
+  debug_inspect(values.read(), content="[110, 220]")
+  inspect(build_runs, content="2")
+  inspect(dispose_runs, content="0")
+
+  set_source(Map([(1, 11), (2, 20)]))
+  debug_inspect(values.read(), content="[111, 220]")
+  inspect(build_runs, content="2")
+  inspect(dispose_runs, content="0")
+
+  set_source(Map([(2, 20)]))
+  debug_inspect(values.read(), content="[220]")
+  inspect(build_runs, content="2")
+  inspect(dispose_runs, content="1")
+
+  set_source(Map([(1, 12), (2, 20)]))
+  debug_inspect(values.read(), content="[112, 220]")
+  inspect(build_runs, content="3")
+  inspect(dispose_runs, content="1")
+
+  set_source(Map([]))
+  debug_inspect(values.read(), content="[]")
+  inspect(build_runs, content="3")
+  inspect(dispose_runs, content="3")
+}
+
+///|
 enum Route {
   Home
   Detail
@@ -313,6 +350,60 @@ impl @duplix.Enumerate for Route with fn tag(self) {
     Home => "home"
     Detail => "detail"
   }
+}
+
+///|
+test "switch_with_disposer disposes only replaced active branch" {
+  let (route, set_route) = @duplix.input(Home)
+  let (home_input, set_home_input) = @duplix.input(1)
+  let (detail_input, set_detail_input) = @duplix.input(10)
+  let mut build_runs = 0
+  let mut home_disposes = 0
+  let mut detail_disposes = 0
+  let selected = route.switch_with_disposer(route => {
+    build_runs = build_runs + 1
+    match route {
+      Home => {
+        let result = home_input.map1(x => x + 100)
+        let dispose = () => home_disposes = home_disposes + 1
+        (result, dispose)
+      }
+      Detail => {
+        let result = detail_input.map1(x => x + 1000)
+        let dispose = () => detail_disposes = detail_disposes + 1
+        (result, dispose)
+      }
+    }
+  })
+
+  inspect(selected.read(), content="101")
+  inspect(build_runs, content="1")
+  inspect(home_disposes, content="0")
+  inspect(detail_disposes, content="0")
+
+  set_home_input(2)
+  inspect(selected.read(), content="102")
+  inspect(build_runs, content="1")
+  inspect(home_disposes, content="0")
+  inspect(detail_disposes, content="0")
+
+  set_route(Detail)
+  inspect(selected.read(), content="1010")
+  inspect(build_runs, content="2")
+  inspect(home_disposes, content="1")
+  inspect(detail_disposes, content="0")
+
+  set_detail_input(20)
+  inspect(selected.read(), content="1020")
+  inspect(build_runs, content="2")
+  inspect(home_disposes, content="1")
+  inspect(detail_disposes, content="0")
+
+  set_route(Home)
+  inspect(selected.read(), content="102")
+  inspect(build_runs, content="3")
+  inspect(home_disposes, content="1")
+  inspect(detail_disposes, content="1")
 }
 
 ///|

@@ -13,6 +13,7 @@ pub impl Eq for DirtyFlag
 
 type Node[T]
 pub fn[K : Hash + Eq, V : Eq, C : Eq] Node::assoc(Self[Map[K, V]], (K, Self[V]) -> Self[C]) -> Self[Array[C]]
+pub fn[K : Hash + Eq, V : Eq, C : Eq] Node::assoc_with_disposer(Self[Map[K, V]], (K, Self[V]) -> (Self[C], () -> Unit)) -> Self[Array[C]]
 pub fn[A : Eq, B : Eq] Node::bind(Self[A], (A) -> Self[B]) -> Self[B]
 pub fn[E : Enumerate + Eq, A : Eq] Node::enumerate(Self[E], (E) -> Self[A]) -> Self[A]
 pub fn[A : Eq, B] Node::map(Self[A], (A) -> B) -> Self[B]
@@ -29,6 +30,8 @@ pub fn[A : Eq, B : Eq, C : Eq, D : Eq, E : Eq, F : Eq, G : Eq, H] Node::map7(Sel
 pub fn[A : Eq, B : Eq, C : Eq, D : Eq, E : Eq, F : Eq, G : Eq, H : Eq, I] Node::map8(Self[A], Self[B], Self[C], Self[D], Self[E], Self[F], Self[G], Self[H], (A, B, C, D, E, F, G, H) -> I) -> Self[I]
 pub fn[A : Eq, B : Eq, C : Eq, D : Eq, E : Eq, F : Eq, G : Eq, H : Eq, I : Eq, J] Node::map9(Self[A], Self[B], Self[C], Self[D], Self[E], Self[F], Self[G], Self[H], Self[I], (A, B, C, D, E, F, G, H, I) -> J) -> Self[J]
 pub fn[A : Eq] Node::read(Self[A]) -> A
+pub fn[E : Enumerate + Eq, A : Eq] Node::switch(Self[E], (E) -> Self[A]) -> Self[A]
+pub fn[E : Enumerate + Eq, A : Eq] Node::switch_with_disposer(Self[E], (E) -> (Self[A], () -> Unit)) -> Self[A]
 pub fn[A : Eq, B : Eq, C : Eq, D : Eq, E : Eq, F : Eq, G : Eq, H : Eq, I : Eq, J : Eq] Node::zip10(Self[A], Self[B], Self[C], Self[D], Self[E], Self[F], Self[G], Self[H], Self[I], Self[J]) -> Self[(A, B, C, D, E, F, G, H, I, J)]
 pub fn[A : Eq, B : Eq, C : Eq, D : Eq, E : Eq, F : Eq, G : Eq, H : Eq, I : Eq, J : Eq, K : Eq] Node::zip11(Self[A], Self[B], Self[C], Self[D], Self[E], Self[F], Self[G], Self[H], Self[I], Self[J], Self[K]) -> Self[(A, B, C, D, E, F, G, H, I, J, K)]
 pub fn[A : Eq, B : Eq, C : Eq, D : Eq, E : Eq, F : Eq, G : Eq, H : Eq, I : Eq, J : Eq, K : Eq, L : Eq] Node::zip12(Self[A], Self[B], Self[C], Self[D], Self[E], Self[F], Self[G], Self[H], Self[I], Self[J], Self[K], Self[L]) -> Self[(A, B, C, D, E, F, G, H, I, J, K, L)]
