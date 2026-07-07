@@ -302,15 +302,15 @@ test "assoc reuses entries and aggregates active results" {
 }
 
 ///|
-test "assoc_with_disposer disposes removed entries" {
+test "assoc disposes removed entry scopes" {
   let (source, set_source) = @duplix.input(Map([(1, 10), (2, 20)]))
   let mut build_runs = 0
   let mut dispose_runs = 0
-  let values = source.assoc_with_disposer((key, value) => {
+  let values = source.assoc((key, value) => {
     build_runs = build_runs + 1
     let result = value.map1(v => key * 100 + v)
-    let dispose = () => dispose_runs = dispose_runs + 1
-    (result, dispose)
+    on_cleanup(() => dispose_runs = dispose_runs + 1)
+    result
   })
 
   debug_inspect(values.read(), content="[110, 220]")
@@ -353,25 +353,23 @@ impl @duplix.Enumerate for Route with fn tag(self) {
 }
 
 ///|
-test "switch_with_disposer disposes only replaced active branch" {
+test "switch disposes only replaced active branch scope" {
   let (route, set_route) = @duplix.input(Home)
   let (home_input, set_home_input) = @duplix.input(1)
   let (detail_input, set_detail_input) = @duplix.input(10)
   let mut build_runs = 0
   let mut home_disposes = 0
   let mut detail_disposes = 0
-  let selected = route.switch_with_disposer(route => {
+  let selected = route.switch(route => {
     build_runs = build_runs + 1
     match route {
       Home => {
-        let result = home_input.map1(x => x + 100)
-        let dispose = () => home_disposes = home_disposes + 1
-        (result, dispose)
+        on_cleanup(() => home_disposes = home_disposes + 1)
+        home_input.map1(x => x + 100)
       }
       Detail => {
-        let result = detail_input.map1(x => x + 1000)
-        let dispose = () => detail_disposes = detail_disposes + 1
-        (result, dispose)
+        on_cleanup(() => detail_disposes = detail_disposes + 1)
+        detail_input.map1(x => x + 1000)
       }
     }
   })
@@ -404,6 +402,47 @@ test "switch_with_disposer disposes only replaced active branch" {
   inspect(build_runs, content="3")
   inspect(home_disposes, content="1")
   inspect(detail_disposes, content="1")
+}
+
+///|
+test "switch disposes cleanup registered during lazy assoc recompute" {
+  let (route, set_route) = @duplix.input(Home)
+  let (items, set_items) = @duplix.input(Map([(1, 10), (2, 20)]))
+  let (detail, _) = @duplix.input(0)
+  let mut item_builds = 0
+  let mut item_disposes = 0
+  let selected = route.switch(route => {
+    match route {
+      Home => {
+        let values = items.assoc((key, value) => {
+          item_builds = item_builds + 1
+          on_cleanup(() => item_disposes = item_disposes + 1)
+          value.map1(v => key * 100 + v)
+        })
+        values.map1(xs => {
+          let mut sum = 0
+          for x in xs {
+            sum = sum + x
+          }
+          sum
+        })
+      }
+      Detail => detail
+    }
+  })
+
+  inspect(selected.read(), content="330")
+  inspect(item_builds, content="2")
+  inspect(item_disposes, content="0")
+
+  set_items(Map([(1, 11), (2, 20)]))
+  inspect(selected.read(), content="331")
+  inspect(item_builds, content="2")
+  inspect(item_disposes, content="0")
+
+  set_route(Detail)
+  inspect(selected.read(), content="0")
+  inspect(item_disposes, content="2")
 }
 
 ///|

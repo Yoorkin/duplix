@@ -42,6 +42,7 @@ struct Node[T] {
   // to exhaust that range, so wraparound is not a practical concern here.
   mut changed_at : Double
   mut recomputed_at : Double
+  scope : @slotmap.Id
   childs : Array[&ErasedNode]
   dirty_flag : DirtyFlag
 }
@@ -78,28 +79,30 @@ impl[T : Eq] ErasedNode for Node[T] with fn dirty_flag(self) {
 
 ///|
 impl[T : Eq] ErasedNode for Node[T] with fn recompute(self) {
-  match self.value {
-    None => {
-      let new = (self.compute)()
-      self.value = Some(new)
-      self.recomputed_at = clock.val
-      self.changed_at = self.recomputed_at
-      self.dirty_flag().dirty = false
-    }
-    Some(old) if self.dirty_flag().dirty => {
-      if self.childs is [] ||
-        self.childs.any(x => x.changed_at() > self.recomputed_at) {
+  current_scope.protect(self.scope, () => {
+    match self.value {
+      None => {
         let new = (self.compute)()
-        self.recomputed_at = clock.val
-        if !Eq::equal(old, new) {
-          self.changed_at = self.recomputed_at
-        }
         self.value = Some(new)
+        self.recomputed_at = clock.val
+        self.changed_at = self.recomputed_at
+        self.dirty_flag().dirty = false
       }
-      self.dirty_flag().dirty = false
+      Some(old) if self.dirty_flag().dirty => {
+        if self.childs is [] ||
+          self.childs.any(x => x.changed_at() > self.recomputed_at) {
+          let new = (self.compute)()
+          self.recomputed_at = clock.val
+          if !Eq::equal(old, new) {
+            self.changed_at = self.recomputed_at
+          }
+          self.value = Some(new)
+        }
+        self.dirty_flag().dirty = false
+      }
+      Some(_) => ()
     }
-    Some(_) => ()
-  }
+  })
 }
 
 ///|
@@ -124,6 +127,7 @@ pub impl Compare for DirtyFlag with fn compare(a, b) {
 pub fn[T : Eq] input(x : T) -> (Node[T], (T) -> Unit) {
   let node = {
     id: get_uuid(),
+    scope: current_scope.val,
     value: None,
     compute: () => x,
     changed_at: 0,
@@ -147,6 +151,7 @@ pub fn[A : Eq, B] Node::map(a : Node[A], f : (A) -> B) -> Node[B] {
   // a.dirty_flag.parents.push(dirty_b)
   {
     id: get_uuid(),
+    scope: current_scope.val,
     value: None,
     compute: () => f(a.value.unwrap()),
     changed_at: 0,
@@ -197,6 +202,7 @@ pub fn[A : Eq, B : Eq] Node::bind(a : Node[A], f : (A) -> Node[B]) -> Node[B] {
 
   {
     id: get_uuid(),
+    scope: current_scope.val,
     value: None,
     compute,
     changed_at: 0,
@@ -212,42 +218,33 @@ pub(open) trait Enumerate {
 }
 
 ///|
-pub fn[E : Enumerate + Eq, A : Eq] Node::switch_with_disposer(
-  a : Node[E],
-  f : (E) -> (Node[A], Disposer),
-) -> Node[A] {
-  let mut active : (String, Node[A], () -> Unit)? = None
-  a.bind(value => {
-    let tag = value.tag()
-    fn update_active(value) {
-      let (node, disposer) = f(value)
-      active = Some((tag, node, disposer))
-      node
-    }
-    match active {
-      None => update_active(value)
-      Some((old_tag, node, disposer)) =>
-        if tag == old_tag {
-          node
-        } else {
-          disposer()
-          update_active(value)
-        }
-    }
-  })
-}
-
-///|
-fn noop() -> Unit {
-  ()
-}
-
-///|
 pub fn[E : Enumerate + Eq, A : Eq] Node::switch(
   a : Node[E],
   f : (E) -> Node[A],
 ) -> Node[A] {
-  a.switch_with_disposer(e => (f(e), noop))
+  let mut active : (String, Node[A], @slotmap.Id)? = None
+  a.bind(value => {
+    let tag = value.tag()
+    fn update_active(value) {
+      with_scope(scope => {
+        let node = current_scope.protect(scope, () => f(value))
+        active = Some((tag, node, scope))
+        node
+      })
+    }
+    match active {
+      None => update_active(value)
+      Some((old_tag, node, scope)) =>
+        if tag == old_tag {
+          node
+        } else {
+          if global_scopes.get(scope) is Some(scope) {
+            scope.dispose()
+          }
+          update_active(value)
+        }
+    }
+  })
 }
 
 ///|
@@ -273,17 +270,21 @@ priv struct AssocEntry[V, C] {
   mut value : V
   set_value : (V) -> Unit
   result : Node[C]
-  disposer : Disposer
+  scope : @slotmap.Id
   mut epoch : Int
 }
 
 ///|
-type Disposer = () -> Unit
-
-///|
-pub fn[K : Hash + Eq, V : Eq, C : Eq] Node::assoc_with_disposer(
+///             node(dict) ---+
+///                           |
+/// node(v1) --?-> node(c1) --+
+///                           |---> node(array(c))
+/// node(v2) --?-> node(c2) --+
+///   ...                     |
+/// node(vN) --?-> node(cN) --+
+pub fn[K : Hash + Eq, V : Eq, C : Eq] Node::assoc(
   a : Node[Map[K, V]],
-  f : (K, Node[V]) -> (Node[C], Disposer),
+  f : (K, Node[V]) -> Node[C],
 ) -> Node[Array[C]] {
   let mut epoch = 0
   let cache : Map[K, AssocEntry[V, C]] = Map([])
@@ -302,9 +303,11 @@ pub fn[K : Hash + Eq, V : Eq, C : Eq] Node::assoc_with_disposer(
         entry.epoch = epoch
         entry
       } else {
-        let (value_node, set_value) = input(value)
-        let (result, disposer) = f(key, value_node)
-        let entry = { value, set_value, result, disposer, epoch }
+        let entry = with_scope(scope => {
+          let (value_node, set_value) = input(value)
+          let result = f(key, value_node)
+          { value, set_value, result, scope, epoch }
+        })
         cache.set(key, entry)
         entry
       }
@@ -322,7 +325,9 @@ pub fn[K : Hash + Eq, V : Eq, C : Eq] Node::assoc_with_disposer(
         if entry.result.dirty_flag.parents.search(output_dirty_flag) is Some(i) {
           ignore(entry.result.dirty_flag.parents.remove(i))
         }
-        (entry.disposer)()
+        if global_scopes.get(entry.scope) is Some(scope) {
+          scope.dispose()
+        }
       }
       cache.remove(key)
     }
@@ -342,6 +347,7 @@ pub fn[K : Hash + Eq, V : Eq, C : Eq] Node::assoc_with_disposer(
 
   {
     id: get_uuid(),
+    scope: current_scope.val,
     value: None,
     compute,
     recomputed_at: 0,
@@ -349,21 +355,6 @@ pub fn[K : Hash + Eq, V : Eq, C : Eq] Node::assoc_with_disposer(
     childs: output_childs,
     dirty_flag: output_dirty_flag,
   }
-}
-
-///|
-///             node(dict) ---+
-///                           |
-/// node(v1) --?-> node(c1) --+
-///                           |---> node(array(c))
-/// node(v2) --?-> node(c2) --+
-///   ...                     |
-/// node(vN) --?-> node(cN) --+
-pub fn[K : Hash + Eq, V : Eq, C : Eq] Node::assoc(
-  a : Node[Map[K, V]],
-  f : (K, Node[V]) -> Node[C],
-) -> Node[Array[C]] {
-  a.assoc_with_disposer((k, v) => (f(k, v), noop))
 }
 
 ///|

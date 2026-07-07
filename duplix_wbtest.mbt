@@ -1,71 +1,6 @@
-// // Whitebox tests run within the package scope.
-// // Use them to validate internal helpers or invariants.
-// // Keep them focused; public behavior belongs in `_test.mbt`.
-
-// ///|
-// // `child.parents` stores dirty edges in the child -> parent direction.
-// fn has_dirty_parent(child : DirtyFlag, parent : DirtyFlag) -> Bool {
-//   child.parents.any(x => x.id == parent.id)
-// }
-
-// ///|
-// test "map2 records only child to parent dirty edges" {
-//   let x = input(1)
-//   let y = input(2)
-//   let x_node = x.to_node()
-//   let y_node = y.to_node()
-//   let sum = x_node.map2(y_node, (x, y) => x + y)
-
-//   assert_true(has_dirty_parent(x_node.dirty_flag, sum.dirty_flag))
-//   assert_true(has_dirty_parent(y_node.dirty_flag, sum.dirty_flag))
-//   assert_true(!has_dirty_parent(sum.dirty_flag, x_node.dirty_flag))
-//   assert_true(!has_dirty_parent(sum.dirty_flag, y_node.dirty_flag))
-//   inspect(sum.read(), content="3")
-// }
-
-// ///|
-// test "bind detaches previous dynamic dirty parent" {
-//   let use_left = input(true)
-//   let left_input = input(1)
-//   let right_input = input(10)
-//   let left = left_input.to_node().map(x => x + 100)
-//   let right = right_input.to_node().map(x => x + 1000)
-//   let bound = use_left
-//     .to_node()
-//     .bind(enabled => if enabled { left } else { right })
-
-//   inspect(bound.read(), content="101")
-//   assert_true(has_dirty_parent(left.dirty_flag, bound.dirty_flag))
-//   assert_true(!has_dirty_parent(right.dirty_flag, bound.dirty_flag))
-
-//   use_left.set(false)
-//   inspect(bound.read(), content="1010")
-//   assert_true(!has_dirty_parent(left.dirty_flag, bound.dirty_flag))
-//   assert_true(has_dirty_parent(right.dirty_flag, bound.dirty_flag))
-// }
-
-// ///|
-// test "bind keeps static selector dirty parent when selector was dynamic child" {
-//   let selector = input(1)
-//   let fallback = input(10)
-//   let selector_node = selector.to_node()
-//   let fallback_node = fallback.to_node()
-//   let bound = selector_node.bind(x => {
-//     if x == 1 {
-//       selector_node
-//     } else {
-//       fallback_node
-//     }
-//   })
-
-//   inspect(bound.read(), content="1")
-//   assert_true(has_dirty_parent(selector_node.dirty_flag, bound.dirty_flag))
-
-//   selector.set(2)
-//   inspect(bound.read(), content="10")
-//   assert_true(has_dirty_parent(selector_node.dirty_flag, bound.dirty_flag))
-//   assert_true(has_dirty_parent(fallback_node.dirty_flag, bound.dirty_flag))
-// }
+// Whitebox tests run within the package scope.
+// Use them to validate internal helpers or invariants.
+// Keep them focused; public behavior belongs in `_test.mbt`.
 
 ///|
 fn has_dirty_parent(child : DirtyFlag, parent : DirtyFlag) -> Bool {
@@ -92,6 +27,59 @@ fn[A] child_count(parent : Node[A], child_id : Int) -> Int {
     }
   }
   count
+}
+
+///|
+test "map2 records only child to parent dirty edges" {
+  let (x, _) = input(1)
+  let (y, _) = input(2)
+  let sum = x.map2(y, (x, y) => x + y)
+
+  inspect(sum.read(), content="3")
+  assert_true(has_dirty_parent(x.dirty_flag, sum.dirty_flag))
+  assert_true(has_dirty_parent(y.dirty_flag, sum.dirty_flag))
+  assert_true(!has_dirty_parent(sum.dirty_flag, x.dirty_flag))
+  assert_true(!has_dirty_parent(sum.dirty_flag, y.dirty_flag))
+}
+
+///|
+test "bind detaches previous dynamic dirty parent" {
+  let (use_left, set_use_left) = input(true)
+  let (left_input, _) = input(1)
+  let (right_input, _) = input(10)
+  let left = left_input.map(x => x + 100)
+  let right = right_input.map(x => x + 1000)
+  let bound = use_left.bind(enabled => if enabled { left } else { right })
+
+  inspect(bound.read(), content="101")
+  assert_true(has_dirty_parent(left.dirty_flag, bound.dirty_flag))
+  assert_true(!has_dirty_parent(right.dirty_flag, bound.dirty_flag))
+
+  set_use_left(false)
+  inspect(bound.read(), content="1010")
+  assert_true(!has_dirty_parent(left.dirty_flag, bound.dirty_flag))
+  assert_true(has_dirty_parent(right.dirty_flag, bound.dirty_flag))
+}
+
+///|
+test "bind keeps static selector dirty parent when selector was dynamic child" {
+  let (selector, set_selector) = input(1)
+  let (fallback, _) = input(10)
+  let bound = selector.bind(x => {
+    if x == 1 {
+      selector
+    } else {
+      fallback
+    }
+  })
+
+  inspect(bound.read(), content="1")
+  assert_true(has_dirty_parent(selector.dirty_flag, bound.dirty_flag))
+
+  set_selector(2)
+  inspect(bound.read(), content="10")
+  assert_true(has_dirty_parent(selector.dirty_flag, bound.dirty_flag))
+  assert_true(has_dirty_parent(fallback.dirty_flag, bound.dirty_flag))
 }
 
 ///|
@@ -154,89 +142,138 @@ test "bind selector branch can switch away and back" {
 }
 
 ///|
-test "scope dispose detaches dirty edge from owned mapped node" {
-  let (root, _) = input(1)
-  let derived = root.map(x => x + 1)
-  let scope = Scope::Scope()
-  scope.add_node(derived)
+enum WbRoute {
+  WbHome
+  WbDetail
+} derive(Eq)
 
-  inspect(root.dirty_flag.parents.length(), content="0")
-  inspect(derived.read(), content="2")
-  assert_true(has_dirty_parent(root.dirty_flag, derived.dirty_flag))
-  inspect(derived.childs.length(), content="1")
-
-  scope.dispose()
-
-  assert_true(!has_dirty_parent(root.dirty_flag, derived.dirty_flag))
-  inspect(derived.childs.length(), content="0")
+///|
+impl Enumerate for WbRoute with fn tag(self) {
+  match self {
+    WbHome => "home"
+    WbDetail => "detail"
+  }
 }
 
 ///|
-test "scope dispose keeps unrelated dirty parents on shared child" {
-  let (root, set_root) = input(1)
-  let kept = root.map(x => x + 10)
-  let disposed = root.map(x => x + 20)
-  let scope = Scope::Scope()
-  scope.add_node(disposed)
+test "switch removes disposed branch scope from owner scope" {
+  let mut home_disposes = 0
+  let mut detail_disposes = 0
+  let (owner, selected, set_route) = with_scope(owner => {
+    let (route, set_route) = input(WbHome)
+    let (home, _) = input(1)
+    let (detail, _) = input(10)
+    let selected = route.switch(route => {
+      match route {
+        WbHome => {
+          on_cleanup(() => home_disposes = home_disposes + 1)
+          home
+        }
+        WbDetail => {
+          on_cleanup(() => detail_disposes = detail_disposes + 1)
+          detail
+        }
+      }
+    })
+    (owner, selected, set_route)
+  })
 
-  inspect(kept.read(), content="11")
-  inspect(disposed.read(), content="21")
-  assert_true(has_dirty_parent(root.dirty_flag, kept.dirty_flag))
-  assert_true(has_dirty_parent(root.dirty_flag, disposed.dirty_flag))
+  inspect(global_scopes[owner].sub_scopes.length(), content="0")
+  inspect(selected.read(), content="1")
+  inspect(global_scopes[owner].sub_scopes.length(), content="1")
 
-  scope.dispose()
+  set_route(WbDetail)
+  inspect(selected.read(), content="10")
+  inspect(home_disposes, content="1")
+  inspect(detail_disposes, content="0")
+  inspect(global_scopes[owner].sub_scopes.length(), content="1")
 
-  assert_true(has_dirty_parent(root.dirty_flag, kept.dirty_flag))
-  assert_true(!has_dirty_parent(root.dirty_flag, disposed.dirty_flag))
-  set_root(2)
-  inspect(kept.read(), content="12")
+  set_route(WbHome)
+  inspect(selected.read(), content="1")
+  inspect(home_disposes, content="1")
+  inspect(detail_disposes, content="1")
+  inspect(global_scopes[owner].sub_scopes.length(), content="1")
+}
+
+///|
+test "assoc removes disposed entry scopes from owner scope" {
+  let mut dispose_runs = 0
+  let (owner, values, set_source) = with_scope(owner => {
+    let (source, set_source) = input(Map([(1, 10), (2, 20)]))
+    let values = source.assoc((key, value) => {
+      on_cleanup(() => dispose_runs = dispose_runs + 1)
+      value.map1(v => key * 100 + v)
+    })
+    (owner, values, set_source)
+  })
+
+  inspect(global_scopes[owner].sub_scopes.length(), content="0")
+  debug_inspect(values.read(), content="[110, 220]")
+  inspect(global_scopes[owner].sub_scopes.length(), content="2")
+
+  set_source(Map([(2, 20)]))
+  debug_inspect(values.read(), content="[220]")
+  inspect(dispose_runs, content="1")
+  inspect(global_scopes[owner].sub_scopes.length(), content="1")
+
+  set_source(Map([]))
+  debug_inspect(values.read(), content="[]")
+  inspect(dispose_runs, content="2")
+  inspect(global_scopes[owner].sub_scopes.length(), content="0")
+}
+
+///|
+test "scope dispose runs registered cleanup" {
+  let mut cleanup_runs = 0
+  let scope = with_scope(scope => {
+    on_cleanup(() => cleanup_runs = cleanup_runs + 1)
+    scope
+  })
+
+  inspect(cleanup_runs, content="0")
+  global_scopes[scope].dispose()
+  inspect(cleanup_runs, content="1")
+  assert_true(global_scopes.get(scope) is None)
+}
+
+///|
+test "scope dispose keeps unrelated sibling scope alive" {
+  let mut cleanup_runs = 0
+  let (left, right) = with_scope(_owner => {
+    let left = with_scope(scope => {
+      on_cleanup(() => cleanup_runs = cleanup_runs + 1)
+      scope
+    })
+    let right = with_scope(scope => {
+      on_cleanup(() => cleanup_runs = cleanup_runs + 10)
+      scope
+    })
+    (left, right)
+  })
+
+  global_scopes[left].dispose()
+  inspect(cleanup_runs, content="1")
+  assert_true(global_scopes.get(left) is None)
+  assert_true(global_scopes.get(right) is Some(_))
+
+  global_scopes[right].dispose()
+  inspect(cleanup_runs, content="11")
+  assert_true(global_scopes.get(right) is None)
 }
 
 ///|
 test "scope dispose recurses into sub scopes and runs cleanups" {
-  let (root, _) = input(1)
-  let parent_owned = root.map(x => x + 1)
-  let child_owned = root.map(x => x + 2)
-  let parent_scope = Scope::Scope()
-  let child_scope = Scope::Scope()
   let cleanup_log : Array[String] = []
-  parent_scope.add_node(parent_owned)
-  child_scope.add_node(child_owned)
-  parent_scope.add_scope(child_scope)
-  child_scope.add_cleanup(() => cleanup_log.push("child"))
-  parent_scope.add_cleanup(() => cleanup_log.push("parent"))
+  let parent = with_scope(parent => {
+    on_cleanup(() => cleanup_log.push("parent"))
+    ignore(with_scope(child => {
+      on_cleanup(() => cleanup_log.push("child"))
+      child
+    }))
+    parent
+  })
 
-  inspect(parent_owned.read(), content="2")
-  inspect(child_owned.read(), content="3")
-  assert_true(has_dirty_parent(root.dirty_flag, parent_owned.dirty_flag))
-  assert_true(has_dirty_parent(root.dirty_flag, child_owned.dirty_flag))
-
-  parent_scope.dispose()
-
-  assert_true(!has_dirty_parent(root.dirty_flag, parent_owned.dirty_flag))
-  assert_true(!has_dirty_parent(root.dirty_flag, child_owned.dirty_flag))
+  global_scopes[parent].dispose()
   debug_inspect(cleanup_log, content="[\"child\", \"parent\"]")
-}
-
-///|
-test "scope dispose detaches current bind branch" {
-  let (use_left, _) = input(true)
-  let (left, _) = input(1)
-  let (right, _) = input(10)
-  let bound = use_left.bind(enabled => if enabled { left } else { right })
-  let scope = Scope::Scope()
-  scope.add_node(bound)
-
-  inspect(bound.read(), content="1")
-  assert_true(has_dirty_parent(use_left.dirty_flag, bound.dirty_flag))
-  assert_true(has_dirty_parent(left.dirty_flag, bound.dirty_flag))
-  assert_true(!has_dirty_parent(right.dirty_flag, bound.dirty_flag))
-  inspect(bound.childs.length(), content="2")
-
-  scope.dispose()
-
-  assert_true(!has_dirty_parent(use_left.dirty_flag, bound.dirty_flag))
-  assert_true(!has_dirty_parent(left.dirty_flag, bound.dirty_flag))
-  assert_true(!has_dirty_parent(right.dirty_flag, bound.dirty_flag))
-  inspect(bound.childs.length(), content="0")
+  assert_true(global_scopes.get(parent) is None)
 }

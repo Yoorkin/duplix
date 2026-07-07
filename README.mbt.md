@@ -52,24 +52,3 @@ state, where the edges can be rebuilt on demand by the next read.
 At no point does the value graph contain a reference cycle.
 
 
-## Scope & Disposer
-
-```
-+--> scope---------------------------------------+
-       |                                         |
-      ref                                        |
-       |                                         |
-       v                                         |
-    sub_scope                                    |
-       |                                         |
-      ref                                       ref
-       |                                         |
-       V                                         V
-   Node(parent) --ref-> Node(child1) --ref-> Node(child2)
-       |                    |                    |
-      ref                  ref                  ref
-       |                    |                    |
-       v                    v                    v
-  Dirty(parent) <-ref-- Dirty(child1) <-ref-- Dirty(child2)
-```
-

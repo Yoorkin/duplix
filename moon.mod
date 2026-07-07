@@ -10,10 +10,21 @@
 // }
 
 name = "Yoorkin/duplix"
-version = "0.2.6"
+
+version = "0.2.7"
+
 readme = "README.mbt.md"
+
 repository = "https://github.com/Yoorkin/duplix"
+
 license = "Apache-2.0"
+
 keywords = [ "reactive", "signals", "incremental", "memoization", "RC" ]
+
 preferred_target = "native"
+
 description = "An RC-friendly reactive graph with lazy computation and bounded retention."
+
+import {
+  "Yoorkin/slotmap@0.2.3",
+}

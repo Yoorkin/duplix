@@ -6,6 +6,7 @@ fn[T] map_node(childs : Array[&ErasedNode], compute : () -> T) -> Node[T] {
   // }
   {
     id: get_uuid(),
+    scope: current_scope.val,
     value: None,
     compute,
     childs,
