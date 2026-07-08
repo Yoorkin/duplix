@@ -4,6 +4,8 @@ package "Yoorkin/duplix"
 // Values
 pub fn cleanup() -> Unit
 
+pub fn[T] constant(T) -> Node[T]
+
 pub fn[T : Eq] input(T) -> (Node[T], (T) -> Unit)
 
 pub fn on_cleanup(() -> Unit) -> Unit

@@ -3,6 +3,28 @@
 // Run `moon test` to execute and `moon test --update` to refresh snapshots.
 
 ///|
+test "constant reads cached value" {
+  let c = @duplix.constant(42)
+
+  inspect(c.read(), content="42")
+  inspect(c.read(), content="42")
+}
+
+///|
+test "constant feeds derived node" {
+  let c = @duplix.constant(10)
+  let mut runs = 0
+  let derived = c.map(x => {
+    runs = runs + 1
+    x + 1
+  })
+
+  inspect(derived.read(), content="11")
+  inspect(derived.read(), content="11")
+  inspect(runs, content="1")
+}
+
+///|
 test "propagate changed input" {
   let (x, set_x) = @duplix.input(10)
   let y = x.map(x => x + 1).map(x => "\{x}")

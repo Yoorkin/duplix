@@ -65,13 +65,7 @@ test "bind detaches previous dynamic dirty parent" {
 test "bind keeps static selector dirty parent when selector was dynamic child" {
   let (selector, set_selector) = input(1)
   let (fallback, _) = input(10)
-  let bound = selector.bind(x => {
-    if x == 1 {
-      selector
-    } else {
-      fallback
-    }
-  })
+  let bound = selector.bind(x => if x == 1 { selector } else { fallback })
 
   inspect(bound.read(), content="1")
   assert_true(has_dirty_parent(selector.dirty_flag, bound.dirty_flag))
@@ -266,10 +260,12 @@ test "scope dispose recurses into sub scopes and runs cleanups" {
   let cleanup_log : Array[String] = []
   let parent = with_scope(parent => {
     on_cleanup(() => cleanup_log.push("parent"))
-    ignore(with_scope(child => {
-      on_cleanup(() => cleanup_log.push("child"))
-      child
-    }))
+    ignore(
+      with_scope(child => {
+        on_cleanup(() => cleanup_log.push("child"))
+        child
+      }),
+    )
     parent
   })
 

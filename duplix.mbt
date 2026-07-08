@@ -48,6 +48,21 @@ struct Node[T] {
 }
 
 ///|
+pub fn[T] constant(x : T) -> Node[T] {
+  let dirty_b = { dirty: false, parents: [], id: get_uuid() }
+  {
+    id: get_uuid(),
+    scope: current_scope.val,
+    value: Some(x),
+    compute: () => x,
+    changed_at: 0,
+    recomputed_at: 0,
+    childs: [],
+    dirty_flag: dirty_b,
+  }
+}
+
+///|
 pub impl[T] Eq for Node[T] with fn equal(a, b) {
   a.id == b.id
 }
