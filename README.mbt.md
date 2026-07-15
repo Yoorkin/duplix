@@ -51,4 +51,9 @@ state, where the edges can be rebuilt on demand by the next read.
 
 At no point does the value graph contain a reference cycle.
 
+## Testing
+
+The optional `Yoorkin/duplix/testing` package provides a lazy `Probe` for
+counting recomputations in black-box tests. Import it with `for "test"` so it
+does not become a runtime dependency of the package under test.
 

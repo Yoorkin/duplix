@@ -1,0 +1,23 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Yoorkin/duplix/testing"
+
+import {
+  "Yoorkin/duplix",
+}
+
+// Values
+pub fn[T : Eq] probe(@duplix.Node[T]) -> Probe[T]
+
+// Errors
+
+// Types and methods
+type Probe[T]
+pub fn[T] Probe::node(Self[T]) -> @duplix.Node[T]
+pub fn[T : Eq] Probe::read(Self[T]) -> T
+pub fn[T] Probe::recompute_count(Self[T]) -> Int
+pub fn[T] Probe::reset(Self[T]) -> Unit
+
+// Type aliases
+
+// Traits
+
